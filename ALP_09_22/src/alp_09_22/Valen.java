@@ -38,6 +38,8 @@ public class Valen {
                     break;
 
                 case 3:
+                    mainMenu();
+                    return;
 
                 default:
                     System.out.println("Invalid option, please try again.");
@@ -46,14 +48,16 @@ public class Valen {
     }
 
     private void login() {
+        System.out.println("");
         System.out.print("Username: ");
         String username = scan.next();
-        System.out.print("Password");
+        System.out.print("Password: ");
         String password = scan.next();
 
         for (int i = 0; i < count; i++) {
             if (username.equals(user[i]) && password.equals(pass[i])) {
                 System.out.println("You have successfully logged in");
+                mainMenu();
                 return;
             }
         }
@@ -61,15 +65,17 @@ public class Valen {
     }
 
     private void register() {
+        System.out.println("");
         System.out.print("Username: ");
         String newUsername = scan.next();
 
         while (!validPass()) {
-            System.out.println("Password does not meet the requirements, please try again.");
+            System.out.println("");
         }
 
         user[count] = newUsername;
-        System.out.println("Account created succesfully!");
+        System.out.println("Account created successfully!");
+        System.out.println("");
         count++;
     }
 
@@ -99,6 +105,17 @@ public class Valen {
             }
         }
 
-        return checkUpper && checkLower && checkDigit && checkSymbol;
+        if (checkUpper && checkLower && checkDigit && checkSymbol) {
+            pass[count] = newPassword;
+            return true;
+        } else {
+            System.out.println("Password must contain at least one uppercase letter, one lowercase letter, one digit, and one symbol.");
+            return false;
+        }
+    }
+
+    public void mainMenu() {
+        System.out.println("");
+        System.out.println("This is the main menu");
     }
 }
