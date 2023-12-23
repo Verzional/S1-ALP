@@ -7,12 +7,14 @@ public class Valen {
     private Scanner scan;
     private String[] user;
     private String[] pass;
+    private boolean exit;
     private int count;
-
+    
     public Valen() {
         scan = new Scanner(System.in);
         user = new String[10];
         pass = new String[10];
+        exit = false;
         count = 0;
     }
 
@@ -22,7 +24,7 @@ public class Valen {
     }
 
     public void firstPage() {
-        while (true) {
+        while (!exit) {
             System.out.println("Menu:");
             System.out.println("1. Login" + "\n2. Create Account" + "\n3. Continue as a Guest");
             System.out.print("Choice: ");
@@ -39,7 +41,8 @@ public class Valen {
 
                 case 3:
                     mainMenu();
-                    return;
+                    exit = true;
+                    break;
 
                 default:
                     System.out.println("Invalid option, please try again.");
@@ -48,8 +51,7 @@ public class Valen {
     }
 
     private void login() {
-        System.out.println("");
-        System.out.print("Username: ");
+        System.out.print("\nUsername: ");
         String username = scan.next();
         System.out.print("Password: ");
         String password = scan.next();
@@ -58,6 +60,7 @@ public class Valen {
             if (username.equals(user[i]) && password.equals(pass[i])) {
                 System.out.println("You have successfully logged in");
                 mainMenu();
+                exit = true;
                 return;
             }
         }
@@ -65,8 +68,7 @@ public class Valen {
     }
 
     private void register() {
-        System.out.println("");
-        System.out.print("Username: ");
+        System.out.print("\nUsername: ");
         String newUsername = scan.next();
 
         while (!validPass()) {
@@ -74,8 +76,7 @@ public class Valen {
         }
 
         user[count] = newUsername;
-        System.out.println("Account created successfully!");
-        System.out.println("");
+        System.out.println("Account created successfully!\n");
         count++;
     }
 
@@ -115,7 +116,6 @@ public class Valen {
     }
 
     public void mainMenu() {
-        System.out.println("");
-        System.out.println("This is the main menu");
+        System.out.println("\nThis is the main menu");
     }
 }
