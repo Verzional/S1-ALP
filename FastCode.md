@@ -1,19 +1,28 @@
 package alp_09_22;
 
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Scanner;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class Valen {
-
+    
+    private int count;
     private Scanner scan;
     private String[] user;
     private String[] pass;
-    private int count;
+    private Map<LocalDate, Long> expensesMap;
+    private DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+
 
     public Valen() {
+        count = 0;
         scan = new Scanner(System.in);
         user = new String[10];
         pass = new String[10];
-        count = 0;
+        expensesMap = new HashMap<>();
+        
     }
 
     public static void main(String[] args) {
@@ -23,33 +32,40 @@ public class Valen {
 
     public void firstPage() {
         while (true) {
-            System.out.println("Menu:");
-            System.out.println("1. Login" + "\n2. Create Account" + "\n3. Continue as a Guest");
-            System.out.print("Choice: ");
-            int choice = scan.nextInt();
+            System.out.println("""
+                               ---------------------------
+                                    Welcome to Finner!
+                               ---------------------------
+                               Menu: 1. Login
+                                     2. Create an Account 
+                                     3. Continue as a Guest
+                                     4. Exit Program""");
+            System.out.print("Choose an Option: ");
+            int option = scan.nextInt();
 
-            switch (choice) {
-                case 1:
+            switch (option) {
+                case 1 ->
                     login();
-                    break;
 
-                case 2:
+                case 2 ->
                     register();
-                    break;
 
-                case 3:
+                case 3 ->
                     mainMenu();
-                    return;
 
-                default:
+                case 4 -> {
+                    System.out.println("\nThank you for using Finner!");
+                    System.exit(0);
+                }
+
+                default ->
                     System.out.println("Invalid option, please try again.");
             }
         }
     }
 
     private void login() {
-        System.out.println("");
-        System.out.print("Username: ");
+        System.out.print("\nUsername: ");
         String username = scan.next();
         System.out.print("Password: ");
         String password = scan.next();
@@ -65,8 +81,7 @@ public class Valen {
     }
 
     private void register() {
-        System.out.println("");
-        System.out.print("Username: ");
+        System.out.print("\nUsername: ");
         String newUsername = scan.next();
 
         while (!validPass()) {
@@ -74,8 +89,7 @@ public class Valen {
         }
 
         user[count] = newUsername;
-        System.out.println("Account created successfully!");
-        System.out.println("");
+        System.out.println("Account created successfully!\n");
         count++;
     }
 
@@ -115,7 +129,78 @@ public class Valen {
     }
 
     public void mainMenu() {
-        System.out.println("");
-        System.out.println("This is the main menu");
+        while (true) {
+            System.out.println("""
+                               ---------------------------
+                                    Welcome to Finner!
+                               ---------------------------
+                               Menu: 1. Record Expenses
+                                     2. Record Income 
+                                     3. View Record
+                                     4. Logout""");
+            System.out.print("Choose an Option: ");
+            int option = scan.nextInt();
+
+            switch (option) {
+                case 1 ->
+                    expenses();
+
+                case 2 ->
+                    income();
+
+                case 3 ->
+                    view();
+
+                case 4 ->
+                    logout();
+
+                default ->
+                    System.out.println("Invalid option, please try again.");
+            }
+        }
+    }
+
+    private void expenses() {
+        System.out.println("\nRecord Expenses:");
+
+        System.out.print("Enter the date (DD-MM-YYYY): ");
+        String dateInput = scan.next();
+        LocalDate date = LocalDate.parse(dateInput, dateFormatter);
+
+        System.out.print("Enter the expense amount: Rp ");
+        long expenseAmount = scan.nextLong();
+
+        expensesMap.put(date, expensesMap.getOrDefault(date, 0L) + expenseAmount);
+
+        System.out.println("Expense recorded successfully!");
+    }
+
+    private void income() {
+
+    }
+
+    private void view() {
+        System.out.println("\nView Records:");
+
+        System.out.print("Enter the date to view expenses (DD-MM-YYYY): ");
+        String dateInput = scan.next();
+        LocalDate date = LocalDate.parse(dateInput, dateFormatter);
+
+        long expensesForDate = expensesMap.getOrDefault(date, 0L);
+        System.out.println("Expenses for " + date + ": Rp " + expensesForDate);
+    }
+
+    private void logout() {
+        System.out.print("\nAre you sure you want to log out? (Y/N): ");
+        String choice = scan.next();
+
+        if (choice.equalsIgnoreCase("Y")) {
+            firstPage();
+        } else if (choice.equalsIgnoreCase("N")) {
+            mainMenu();
+        } else {
+            System.out.println("Invalid Option!\n");
+            logout();
+        }
     }
 }
