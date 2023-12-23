@@ -8,112 +8,123 @@ import java.util.Scanner;
 
 public class FinalProject2 {
 
-    int count = 0, count2 = 0;
-    Scanner scan = new Scanner(System.in);
-    boolean validity = false;
-    String[] user = new String[10];
-    String[] pass = new String[10];
+    int count2 = 0;
+    private Scanner scan;
+    private String[] user;
+    private String[] pass;
+    private int count;
     long[] foodBudget = new long[1000];
     long[] transportationBudget = new long[1000];
     long[] utilitiesBudget = new long[1000];
     long[] educationBudget = new long[1000];
     int budget = 0;
+    boolean exit = false;
+
+    public FinalProject2() {
+        scan = new Scanner(System.in);
+        user = new String[10];
+        pass = new String[10];
+        count = 0;
+    }
 
     public static void main(String[] args) {
         Calendar calendar = Calendar.getInstance();
         FinalProject2 finalProject = new FinalProject2();
-        finalProject.run();
+        finalProject.firstPage();
     }
 
-    public void run() {
-        while (true) {
-            displayMenu();
-            int option = scan.nextInt();
-            switch (option) {
+    public void firstPage() {
+
+        while (!exit) {
+            System.out.println("Menu:");
+            System.out.println("1. Login" + "\n2. Create Account" + "\n3. Continue as a Guest");
+            System.out.print("Choice: ");
+            int choice = scan.nextInt();
+
+            switch (choice) {
                 case 1:
                     login();
                     break;
+
                 case 2:
-                    createAccount();
+                    register();
                     break;
+
                 case 3:
                     run2();
+                    exit = true;
                     return;
                 default:
-                    System.out.println("Invalid option. Please choose a valid option.");
+                    System.out.println("Invalid option, please try again.");
             }
         }
-    }
-
-    private void displayMenu() {
-        System.out.println("Menu:");
-        System.out.println("1. Login \n2. Create Account \n3. Continue as a Guest");
-        System.out.print("Reply: ");
     }
 
     private void login() {
+        System.out.println("");
         System.out.print("Username: ");
-        String username = scan.next() + scan.nextLine();
+        String username = scan.next();
         System.out.print("Password: ");
-        String password = scan.next() + scan.nextLine();
+        String password = scan.next();
 
-        for (int i = 0; i < 10; i++) {
-
+        for (int i = 0; i < count; i++) {
             if (username.equals(user[i]) && password.equals(pass[i])) {
                 System.out.println("You have successfully logged in");
-                validity = true;
+                run2();
+                exit = true;
+                return;
             }
         }
-        if (validity == true) {
-            mainMenu();
-        } else {
-            System.out.println("Invalid username or Password. Please Try Again.");
-            login();
-        }
+        System.out.println("Invalid username or password. Please try again.");
     }
 
-    private void createAccount() {
-        for (int i = 0; i < 10; i++) {
-            System.out.print("Username: ");
-            user[count] = scan.next();
+    private void register() {
+        System.out.println("=====================");
+        System.out.print("Username: ");
+        String newUsername = scan.next();
 
-            boolean checkUpper = false;
-            boolean checkLower = false;
-            boolean checkDigit = false;
-            boolean checkSymbol = false;
+        while (!validPass()) {
+            System.out.println("");
+        }
 
-            do {
-                System.out.print("Password (at least 8 characters): ");
-                pass[count] = scan.next();
+        user[count] = newUsername;
+        System.out.println("Account created successfully!");
+        System.out.println("=====================");
+        count++;
+    }
 
-                if (pass[count].length() < 8) {
-                    System.out.println("Password must be at least 8 characters long. Try again.");
-                    continue;
-                }
+    private boolean validPass() {
+        System.out.print("Password (at least 8 characters, containing uppercase, lowercase, digit, and symbol): ");
+        String newPassword = scan.next();
 
-                for (int j = 0; j < pass[count].length(); j++) {
-                    char pw = pass[count].charAt(j);
+        if (newPassword.length() < 8) {
+            System.out.println("Password must be at least 8 characters long.");
+            return false;
+        }
 
-                    if (Character.isUpperCase(pw)) {
-                        checkUpper = true;
-                    } else if (Character.isLowerCase(pw)) {
-                        checkLower = true;
-                    } else if (Character.isDigit(pw)) {
-                        checkDigit = true;
-                    } else {
-                        checkSymbol = true;
-                    }
-                }
+        boolean checkUpper = false;
+        boolean checkLower = false;
+        boolean checkDigit = false;
+        boolean checkSymbol = false;
 
-                if (!(checkUpper && checkLower && checkDigit && checkSymbol)) {
-                    System.out.println("Password does not meet the requirements. Try again.");
-                    System.out.println(" ");
-                }
-            } while (!(checkUpper && checkLower && checkDigit && checkSymbol));
-            System.out.println("Account created successfully");
-            count++;
-            writeArraysToFile();
-            run2();
+        for (char pwChar : newPassword.toCharArray()) {
+            if (Character.isUpperCase(pwChar)) {
+                checkUpper = true;
+            } else if (Character.isLowerCase(pwChar)) {
+                checkLower = true;
+            } else if (Character.isDigit(pwChar)) {
+                checkDigit = true;
+            } else {
+                checkSymbol = true;
+            }
+        }
+
+        if (checkUpper && checkLower && checkDigit && checkSymbol) {
+            pass[count] = newPassword;
+            return true;
+        } else {
+            System.out.println("Password must contain at least one uppercase letter, one lowercase letter, one digit, and one symbol.");
+            return false;
         }
     }
 
