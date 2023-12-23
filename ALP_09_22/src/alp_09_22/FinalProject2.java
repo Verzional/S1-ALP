@@ -13,6 +13,10 @@ public class FinalProject2 {
     private String[] user;
     private String[] pass;
     private int count;
+    Calendar calendar = Calendar.getInstance();
+    int year = calendar.get(Calendar.YEAR);
+    int month = calendar.get(Calendar.MONTH) + 1; // Note: Month is 0-based
+    int day = calendar.get(Calendar.DAY_OF_MONTH);
     long[] foodBudget = new long[1000];
     long[] transportationBudget = new long[1000];
     long[] utilitiesBudget = new long[1000];
@@ -28,7 +32,7 @@ public class FinalProject2 {
     }
 
     public static void main(String[] args) {
-        Calendar calendar = Calendar.getInstance();
+
         FinalProject2 finalProject = new FinalProject2();
         finalProject.firstPage();
     }
@@ -40,7 +44,6 @@ public class FinalProject2 {
             System.out.println("1. Login" + "\n2. Create Account" + "\n3. Continue as a Guest");
             System.out.print("Choice: ");
             int choice = scan.nextInt();
-
             switch (choice) {
                 case 1:
                     login();
@@ -91,6 +94,7 @@ public class FinalProject2 {
         System.out.println("Account created successfully!");
         System.out.println("=====================");
         count++;
+        writeArraysToFile();
     }
 
     private boolean validPass() {
@@ -162,6 +166,7 @@ public class FinalProject2 {
 
     public void pengeluaran() {
         System.out.println("=====================");
+        System.out.println(year + "/" + month + "/" + day);
         System.out.println("Silahkan pilih salah satu menu dibawah ini: " + "\n1. Needs" + "\n2. Wants" + "\n3. Save");
         System.out.print("Reply: ");
         int category = scan.nextInt();
@@ -264,14 +269,14 @@ public class FinalProject2 {
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
             // Write each element of the user array to the file
-            for (String value : user) {
-                writer.write(String.valueOf(value));
+            for (int i = 0; i < count; i++) {
+                writer.write(String.valueOf(user[i]));
                 writer.newLine();  // Add a newline for each element
             }
 
-            // Write each element of the pass array to the file
-            for (String value : pass) {
-                writer.write(String.valueOf(value));
+            // Write only the valid elements of the pass array to the file
+            for (int i = 0; i < count; i++) {
+                writer.write(String.valueOf(pass[i]));
                 writer.newLine();  // Add a newline for each element
             }
 
