@@ -1,5 +1,6 @@
 package alp_09_22;
 
+import java.util.*;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Scanner;
@@ -7,22 +8,23 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 public class Valen {
-    
-    private int count;
-    private Scanner scan;
-    private String[] user;
-    private String[] pass;
-    private Map<LocalDate, Long> expensesMap;
-    private DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
+    private int count;
+    private final Scanner scan;
+    private final String[] user;
+    private final String[] pass;
+    private final Map<LocalDate, List<incomeData>> incomeMap;
+    private final Map<LocalDate, List<expenseData>> expenseMap;
+    private final DateTimeFormatter dateFormatter;
 
     public Valen() {
         count = 0;
         scan = new Scanner(System.in);
         user = new String[10];
         pass = new String[10];
-        expensesMap = new HashMap<>();
-        
+        incomeMap = new HashMap<>();
+        expenseMap = new HashMap<>();
+        dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
     }
 
     public static void main(String[] args) {
@@ -32,11 +34,8 @@ public class Valen {
 
     public void firstPage() {
         while (true) {
-            System.out.println("""
-                               ---------------------------
-                                    Welcome to Finner!
-                               ---------------------------
-                               Menu: 1. Login
+            System.out.println(MENU_HEADER + """
+                               Menu: 1. Login 
                                      2. Create an Account 
                                      3. Continue as a Guest
                                      4. Exit Program""");
@@ -53,10 +52,8 @@ public class Valen {
                 case 3 ->
                     mainMenu();
 
-                case 4 -> {
-                    System.out.println("\nThank you for using Finner!");
-                    System.exit(0);
-                }
+                case 4 ->
+                    exit();
 
                 default ->
                     System.out.println("Invalid option, please try again.");
@@ -128,12 +125,14 @@ public class Valen {
         }
     }
 
+    private void exit() {
+        System.out.println("\nThank you for using Finner!");
+        System.exit(0);
+    }
+
     public void mainMenu() {
         while (true) {
-            System.out.println("""
-                               ---------------------------
-                                    Welcome to Finner!
-                               ---------------------------
+            System.out.println(MENU_HEADER + """
                                Menu: 1. Record Expenses
                                      2. Record Income 
                                      3. View Record
@@ -161,33 +160,68 @@ public class Valen {
     }
 
     private void expenses() {
-        System.out.println("\nRecord Expenses:");
+        try {
+            System.out.print("\nEnter the date (DD-MM-YYYY): ");
+            String dateInput = scan.next();
+            LocalDate date = LocalDate.parse(dateInput, dateFormatter);
 
-        System.out.print("Enter the date (DD-MM-YYYY): ");
-        String dateInput = scan.next();
-        LocalDate date = LocalDate.parse(dateInput, dateFormatter);
+            System.out.print("Enter the expense title: ");
+            String expenseTitle = scan.next() + scan.nextLine();
+            System.out.print("Enter the expense amount: ");
+            long expenseAmount = scan.nextLong();
 
-        System.out.print("Enter the expense amount: ");
-        long expenseAmount = scan.nextLong();
+            expenseData data = new expenseData(expenseTitle, expenseAmount);
+            expenseMap.computeIfAbsent(date, k -> new ArrayList<>()).add(data);
 
-        expensesMap.put(date, expensesMap.getOrDefault(date, 0L) + expenseAmount);
+            System.out.println("Expense recorded successfully!");
 
-        System.out.println("Expense recorded successfully!");
+            extraRecord();
+        } catch (Exception e) {
+            System.out.println("Invalid date format. Please use DD-MM-YYYY.");
+            scan.nextLine();
+        }
     }
 
     private void income() {
+        try {
+            System.out.print("\nEnter the date (DD-MM-YYYY): ");
+            String dateInput = scan.next();
+            LocalDate date = LocalDate.parse(dateInput, dateFormatter);
 
+            System.out.print("Enter the income title: ");
+            String incomeTitle = scan.next() + scan.nextLine();
+            System.out.print("Enter the income amount: ");
+            long incomeAmount = scan.nextLong();
+
+            incomeData data = new incomeData(incomeTitle, incomeAmount);
+            incomeMap.computeIfAbsent(date, k -> new ArrayList<>()).add(data);
+
+            System.out.println("Income recorded successfully!");
+
+            extraRecord();
+        } catch (Exception e) {
+            System.out.println("Invalid date format. Please use DD-MM-YYYY.");
+            scan.nextLine();
+        }
     }
 
     private void view() {
-        System.out.println("\nView Records:");
+        System.out.println("\nExpense Record:");
+        for (Map.Entry<LocalDate, List<expenseData>> entry : expenseMap.entrySet()) {
+            System.out.println("Date: " + entry.getKey());
+            for (expenseData data : entry.getValue()) {
+                System.out.println("Title: " + data.getTitle() + ", Amount: Rp " + data.getAmount());
+            }
+            System.out.println("");
+        }
 
-        System.out.print("Enter the date to view expenses (DD-MM-YYYY): ");
-        String dateInput = scan.next();
-        LocalDate date = LocalDate.parse(dateInput, dateFormatter);
-
-        long expensesForDate = expensesMap.getOrDefault(date, 0L);
-        System.out.println("Expenses for " + date + ": Rp" + expensesForDate);
+        System.out.println("\nIncome Record: ");
+        for (Map.Entry<LocalDate, List<incomeData>> entry : incomeMap.entrySet()) {
+            System.out.println("Date: " + entry.getKey());
+            for (incomeData data : entry.getValue()) {
+                System.out.println("Title: " + data.getTitle() + ", Amount: Rp " + data.getAmount());
+            }
+        }
     }
 
     private void logout() {
@@ -203,4 +237,62 @@ public class Valen {
             logout();
         }
     }
+
+    private void extraRecord() {
+        System.out.print("\nDo you want to record another one? (Y/N): ");
+        String choice = scan.next();
+
+        if (choice.equalsIgnoreCase("Y")) {
+            expenses();
+        } else if (choice.equalsIgnoreCase("N")) {
+            mainMenu();
+        } else {
+            System.out.println("Invalid Option!");
+            extraRecord();
+        }
+    }
+
+    private static class expenseData {
+
+        private final String title;
+        private final long amount;
+
+        public expenseData(String title, long amount) {
+            this.title = title;
+            this.amount = amount;
+        }
+
+        public String getTitle() {
+            return title;
+        }
+
+        public long getAmount() {
+            return amount;
+        }
+    }
+
+    private static class incomeData {
+
+        private final String title;
+        private final long amount;
+
+        public incomeData(String title, long amount) {
+            this.title = title;
+            this.amount = amount;
+        }
+
+        public String getTitle() {
+            return title;
+        }
+
+        public long getAmount() {
+            return amount;
+        }
+    }
+
+    private static final String MENU_HEADER = """
+                                         ---------------------------
+                                              Welcome to Finner!
+                                         ---------------------------
+                                         """;
 }
