@@ -1,5 +1,6 @@
 package alp_09_22;
 
+import java.io.*;
 import java.util.*;
 import java.util.Map;
 import java.util.HashMap;
@@ -16,6 +17,11 @@ public class Valen {
     private final Map<LocalDate, List<incomeData>> incomeMap;
     private final Map<LocalDate, List<expenseData>> expenseMap;
     private final DateTimeFormatter dateFormatter;
+    private static final String MENU_HEADER = """
+                                     ---------------------------
+                                          Welcome to Finner!
+                                     ---------------------------
+                                     """;
 
     public Valen() {
         count = 0;
@@ -29,32 +35,28 @@ public class Valen {
 
     public static void main(String[] args) {
         Valen func = new Valen();
-        func.firstPage();
+        func.firstMenu();
     }
 
-    public void firstPage() {
+    public void firstMenu() {
         while (true) {
             System.out.println(MENU_HEADER + """
-                               Menu: 1. Login 
-                                     2. Create an Account 
-                                     3. Continue as a Guest
-                                     4. Exit Program""");
+                           Menu: 1. Login 
+                                 2. Create an Account 
+                                 3. Continue as a Guest
+                                 4. Exit Program""");
             System.out.print("Choose an Option: ");
             int option = scan.nextInt();
 
             switch (option) {
                 case 1 ->
                     login();
-
                 case 2 ->
                     register();
-
                 case 3 ->
                     mainMenu();
-
                 case 4 ->
                     exit();
-
                 default ->
                     System.out.println("Invalid option, please try again.");
             }
@@ -88,6 +90,11 @@ public class Valen {
         user[count] = newUsername;
         System.out.println("Account created successfully!\n");
         count++;
+    }
+    
+    private void exit() {
+        System.out.println("\nThank you for using Finner!");
+        System.exit(0);
     }
 
     private boolean validPass() {
@@ -125,34 +132,25 @@ public class Valen {
         }
     }
 
-    private void exit() {
-        System.out.println("\nThank you for using Finner!");
-        System.exit(0);
-    }
-
     public void mainMenu() {
         while (true) {
             System.out.println(MENU_HEADER + """
-                               Menu: 1. Record Expenses
-                                     2. Record Income 
-                                     3. View Record
-                                     4. Logout""");
+                           Menu: 1. Record Expenses
+                                 2. Record Income 
+                                 3. View Record
+                                 4. Logout""");
             System.out.print("Choose an Option: ");
             int option = scan.nextInt();
 
             switch (option) {
                 case 1 ->
                     expenses();
-
                 case 2 ->
                     income();
-
                 case 3 ->
                     view();
-
                 case 4 ->
                     logout();
-
                 default ->
                     System.out.println("Invalid option, please try again.");
             }
@@ -208,16 +206,16 @@ public class Valen {
     private void view() {
         System.out.println("\nExpense Record:");
         for (Map.Entry<LocalDate, List<expenseData>> entry : expenseMap.entrySet()) {
-            System.out.println("Date: " + entry.getKey());
+            System.out.println("Date: " + entry.getKey().format(dateFormatter));
             for (expenseData data : entry.getValue()) {
                 System.out.println("Title: " + data.getTitle() + ", Amount: Rp " + data.getAmount());
             }
             System.out.println("");
         }
 
-        System.out.println("\nIncome Record: ");
+        System.out.println("Income Record: ");
         for (Map.Entry<LocalDate, List<incomeData>> entry : incomeMap.entrySet()) {
-            System.out.println("Date: " + entry.getKey());
+            System.out.println("Date: " + entry.getKey().format(dateFormatter));
             for (incomeData data : entry.getValue()) {
                 System.out.println("Title: " + data.getTitle() + ", Amount: Rp " + data.getAmount());
             }
@@ -229,7 +227,7 @@ public class Valen {
         String choice = scan.next();
 
         if (choice.equalsIgnoreCase("Y")) {
-            firstPage();
+            firstMenu();
         } else if (choice.equalsIgnoreCase("N")) {
             mainMenu();
         } else {
@@ -247,7 +245,7 @@ public class Valen {
         } else if (choice.equalsIgnoreCase("N")) {
             mainMenu();
         } else {
-            System.out.println("Invalid Option!");
+            System.out.println("Invalid Option, please use Y/N.");
             extraRecord();
         }
     }
@@ -289,10 +287,4 @@ public class Valen {
             return amount;
         }
     }
-
-    private static final String MENU_HEADER = """
-                                         ---------------------------
-                                              Welcome to Finner!
-                                         ---------------------------
-                                         """;
 }
