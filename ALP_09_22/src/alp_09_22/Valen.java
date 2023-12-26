@@ -205,21 +205,30 @@ public class Valen {
 
     private void view() {
         System.out.println("\nExpense Record:");
-        for (Map.Entry<LocalDate, List<expenseData>> entry : expenseMap.entrySet()) {
-            System.out.println("Date: " + entry.getKey().format(dateFormatter));
-            for (expenseData data : entry.getValue()) {
-                System.out.println("Title: " + data.getTitle() + ", Amount:  " + data.getAmount());
-            }
-            System.out.println("");
-        }
+        
+        expenseMap.entrySet().stream()
+            .sorted(Map.Entry.comparingByKey())
+            .forEach(entry -> {
+                System.out.println("Date: " + entry.getKey().format(dateFormatter));
+                entry.getValue().forEach(data ->
+                        System.out.println("Title: " + data.getTitle() + ", Amount:  " + data.getAmount())
+                );
+                System.out.println("");
+            });
 
-        System.out.println("Income Record: ");
-        for (Map.Entry<LocalDate, List<incomeData>> entry : incomeMap.entrySet()) {
-            System.out.println("Date: " + entry.getKey().format(dateFormatter));
-            for (incomeData data : entry.getValue()) {
-                System.out.println("Title: " + data.getTitle() + ", Amount:  " + data.getAmount());
-            }
-        }
+        System.out.println("\n----------------------------------");
+        System.out.println("\nIncome Record:");
+        incomeMap.entrySet().stream()
+            .sorted(Map.Entry.comparingByKey())
+            .forEach(entry -> {
+                System.out.println("Date: " + entry.getKey().format(dateFormatter));
+                entry.getValue().forEach(data ->
+                        System.out.println("Title: " + data.getTitle() + ", Amount:  " + data.getAmount())
+                );
+            });
+        
+        
+        System.out.println("\n\n\n\n");
     }
 
     private void logout() {
@@ -266,6 +275,7 @@ public class Valen {
 
         public String getAmount() {
             NumberFormat formatter = NumberFormat.getCurrencyInstance();
+            formatter.setMaximumFractionDigits(0);
             String moneyString = formatter.format(amount);
             return moneyString;
         }
@@ -287,6 +297,7 @@ public class Valen {
 
         public String getAmount() {
             NumberFormat formatter = NumberFormat.getCurrencyInstance();
+            formatter.setMaximumFractionDigits(0);
             String moneyString = formatter.format(amount);
             return moneyString;
         }
