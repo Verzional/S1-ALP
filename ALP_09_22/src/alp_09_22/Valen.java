@@ -1,6 +1,6 @@
 package alp_09_22;
 
-import java.io.*;
+import java.text.NumberFormat;
 import java.util.*;
 import java.util.Map;
 import java.util.HashMap;
@@ -208,7 +208,7 @@ public class Valen {
         for (Map.Entry<LocalDate, List<expenseData>> entry : expenseMap.entrySet()) {
             System.out.println("Date: " + entry.getKey().format(dateFormatter));
             for (expenseData data : entry.getValue()) {
-                System.out.println("Title: " + data.getTitle() + ", Amount: Rp " + data.getAmount());
+                System.out.println("Title: " + data.getTitle() + ", Amount:  " + data.getAmount());
             }
             System.out.println("");
         }
@@ -217,7 +217,7 @@ public class Valen {
         for (Map.Entry<LocalDate, List<incomeData>> entry : incomeMap.entrySet()) {
             System.out.println("Date: " + entry.getKey().format(dateFormatter));
             for (incomeData data : entry.getValue()) {
-                System.out.println("Title: " + data.getTitle() + ", Amount: Rp " + data.getAmount());
+                System.out.println("Title: " + data.getTitle() + ", Amount:  " + data.getAmount());
             }
         }
     }
@@ -264,8 +264,10 @@ public class Valen {
             return title;
         }
 
-        public long getAmount() {
-            return amount;
+        public String getAmount() {
+            NumberFormat formatter = NumberFormat.getCurrencyInstance();
+            String moneyString = formatter.format(amount);
+            return moneyString;
         }
     }
 
@@ -283,8 +285,10 @@ public class Valen {
             return title;
         }
 
-        public long getAmount() {
-            return amount;
+        public String getAmount() {
+            NumberFormat formatter = NumberFormat.getCurrencyInstance();
+            String moneyString = formatter.format(amount);
+            return moneyString;
         }
     }
 }
