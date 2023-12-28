@@ -11,10 +11,10 @@ import java.time.format.DateTimeFormatter;
 public class Valen {
 
     private int count;
-    private final Scanner scan;
-    private final String[] pass;
     private userData currentUser;
     private final userData guestUser;
+    private final Scanner scan;
+    private final String[] pass;
     private final Map<String, userData> users;
     private final DateTimeFormatter dateFormatter;
     private static final String MENU_HEADER = """
@@ -35,17 +35,15 @@ public class Valen {
     }
 
     public static void main(String[] args) {
-        Valen func = new Valen();
-        func.firstMenu();
+        Valen finner = new Valen();
+        finner.displayMenu();
     }
 
     private void serializeUserData() {
-        if (!(currentUser instanceof guestUser)) {
-            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("userData.ser"))) {
-                oos.writeObject(users);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("userData.ser"))) {
+            oos.writeObject(users);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -61,15 +59,16 @@ public class Valen {
         }
     }
 
-    public void firstMenu() {
+    public void displayMenu() {
         while (true) {
             System.out.println(MENU_HEADER + """
                        Menu: 1. Login 
                              2. Create an Account 
-                             3. Continue as a Guest (Your data won't be saved)
+                             3. Continue as a Guest
                              4. Exit Program""");
             System.out.print("Choose an Option: ");
             int option = scan.nextInt();
+            System.out.println("---------------------------");
 
             switch (option) {
                 case 1 ->
@@ -87,7 +86,7 @@ public class Valen {
     }
 
     private void login() {
-        System.out.print("\nUsername: ");
+        System.out.print("Username: ");
         String username = scan.next();
         System.out.print("Password: ");
         String password = scan.next();
@@ -102,7 +101,7 @@ public class Valen {
     }
 
     private void register() {
-        System.out.print("\nUsername: ");
+        System.out.print("Username: ");
         String newUsername = scan.next();
 
         while (!validPass()) {
@@ -116,7 +115,7 @@ public class Valen {
 
     private void exit() {
         serializeUserData();
-        System.out.println("\nThank you for using Finner!");
+        System.out.println("Thank you for using Finner!");
         System.exit(0);
     }
 
@@ -164,6 +163,7 @@ public class Valen {
                              4. Logout""");
             System.out.print("Choose an Option: ");
             int option = scan.nextInt();
+            System.out.println("---------------------------");
 
             switch (option) {
                 case 1 ->
@@ -182,8 +182,9 @@ public class Valen {
 
     private void expenses() {
         userData user = (userData) currentUser;
+
         try {
-            System.out.print("\nEnter the date (DD-MM-YYYY): ");
+            System.out.print("Enter the date (DD-MM-YYYY): ");
             String dateInput = scan.next();
             LocalDate date = LocalDate.parse(dateInput, dateFormatter);
 
@@ -209,8 +210,9 @@ public class Valen {
 
     private void income() {
         userData user = (userData) currentUser;
+
         try {
-            System.out.print("\nEnter the date (DD-MM-YYYY): ");
+            System.out.print("Enter the date (DD-MM-YYYY): ");
             String dateInput = scan.next();
             LocalDate date = LocalDate.parse(dateInput, dateFormatter);
 
@@ -237,7 +239,7 @@ public class Valen {
     private void view() {
         userData user = (userData) currentUser;
 
-        System.out.println("\nExpense Record:");
+        System.out.println("Expense Record:");
         for (Map.Entry<LocalDate, List<financialData>> entry : user.getFinancialData().entrySet()) {
             if (entry.getValue().stream().anyMatch(data -> data instanceof expenseData)) {
                 System.out.println("Date: " + entry.getKey().format(dateFormatter));
@@ -269,12 +271,12 @@ public class Valen {
         String choice = scan.next();
 
         if (choice.equalsIgnoreCase("Y")) {
-            currentUser = guestUser; // Switch to the guest user
-            firstMenu();
+            currentUser = guestUser;
+            displayMenu();
         } else if (choice.equalsIgnoreCase("N")) {
             mainMenu();
         } else {
-            System.out.println("Invalid Option!\n");
+            System.out.println("Invalid Option!");
             logout();
         }
     }
@@ -290,7 +292,6 @@ public class Valen {
         } else {
             System.out.println("Invalid Option, please use Y/N.");
             extraRecordExpense();
-
         }
     }
 
@@ -309,6 +310,8 @@ public class Valen {
     }
 
     private static class userData implements Serializable {
+
+        private static final long serialVersionUID = 1L;
 
         private final String username;
         private final String password;
