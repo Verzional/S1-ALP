@@ -10,12 +10,11 @@ import java.time.format.DateTimeFormatter;
 
 public class Valen {
 
+    private UserData currentUser;
     private int count;
-    private userData currentUser;
-    private final userData guestUser;
     private final Scanner scan;
     private final String[] pass;
-    private final Map<String, userData> users;
+    private final Map<String, UserData> users;
     private final DateTimeFormatter dateFormatter;
     private static final String MENU_HEADER = """
                                      ---------------------------
@@ -28,8 +27,6 @@ public class Valen {
         scan = new Scanner(System.in);
         pass = new String[10];
         users = new HashMap<>();
-        guestUser = new guestUser();
-        currentUser = guestUser;
         dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
         loadUserData();
     }
@@ -40,22 +37,20 @@ public class Valen {
     }
 
     private void serializeUserData() {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("userData.ser"))) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("UserData.ser"))) {
             oos.writeObject(users);
         } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
     private void loadUserData() {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("userData.ser"))) {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("UserData.ser"))) {
             Object obj = ois.readObject();
             if (obj instanceof Map) {
-                users.putAll((Map<String, userData>) obj);
+                users.putAll((Map<String, UserData>) obj);
             }
         } catch (FileNotFoundException e) {
         } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
         }
     }
 
@@ -91,9 +86,10 @@ public class Valen {
         System.out.print("Password: ");
         String password = scan.next();
 
-        userData user = users.get(username);
+        UserData user = users.get(username);
         if (user != null && user.getPassword().equals(password)) {
             System.out.println("You have successfully logged in!");
+            currentUser = user;
             mainMenu();
         } else {
             System.out.println("Invalid username or password. Please try again.");
@@ -105,10 +101,9 @@ public class Valen {
         String newUsername = scan.next();
 
         while (!validPass()) {
-            System.out.println("");
         }
 
-        users.put(newUsername, new userData(newUsername, pass[count]));
+        users.put(newUsername, new UserData(newUsername, pass[count]));
         System.out.println("Account created successfully!");
         count++;
     }
@@ -181,7 +176,7 @@ public class Valen {
     }
 
     private void expenses() {
-        userData user = (userData) currentUser;
+        UserData user = users.get(currentUser.getUsername());
 
         try {
             System.out.print("Enter the date (DD-MM-YYYY): ");
@@ -193,8 +188,15 @@ public class Valen {
             System.out.print("Enter the expense amount: ");
             long expenseAmount = scan.nextLong();
 
-            financialData data = new expenseData(expenseTitle, expenseAmount);
-            user.getFinancialData().computeIfAbsent(date, k -> new ArrayList<>()).add(data);
+            FinancialData data = new ExpenseData(expenseTitle, expenseAmount);
+
+            List<FinancialData> dataList = user.getFinancialData().get(date);
+            if (dataList == null) {
+                dataList = new ArrayList<>();
+                user.getFinancialData().put(date, dataList);
+            }
+
+            dataList.add(data);
 
             System.out.println("Expense recorded successfully!");
 
@@ -203,13 +205,11 @@ public class Valen {
             System.out.println("Invalid date format. Please use DD-MM-YYYY.");
             scan.nextLine();
         }
-        if (!(currentUser instanceof guestUser)) {
-            serializeUserData();
-        }
+        serializeUserData();
     }
 
     private void income() {
-        userData user = (userData) currentUser;
+        UserData user = users.get(currentUser.getUsername());
 
         try {
             System.out.print("Enter the date (DD-MM-YYYY): ");
@@ -221,8 +221,15 @@ public class Valen {
             System.out.print("Enter the income amount: ");
             long incomeAmount = scan.nextLong();
 
-            financialData data = new incomeData(incomeTitle, incomeAmount);
-            user.getFinancialData().computeIfAbsent(date, k -> new ArrayList<>()).add(data);
+            FinancialData data = new IncomeData(incomeTitle, incomeAmount);
+
+            List<FinancialData> dataList = user.getFinancialData().get(date);
+            if (dataList == null) {
+                dataList = new ArrayList<>();
+                user.getFinancialData().put(date, dataList);
+            }
+
+            dataList.add(data);
 
             System.out.println("Income recorded successfully!");
 
@@ -231,20 +238,18 @@ public class Valen {
             System.out.println("Invalid date format. Please use DD-MM-YYYY.");
             scan.nextLine();
         }
-        if (!(currentUser instanceof guestUser)) {
-            serializeUserData();
-        }
+        serializeUserData();
     }
 
     private void view() {
-        userData user = (userData) currentUser;
+        UserData user = users.get(currentUser.getUsername());
 
         System.out.println("Expense Record:");
-        for (Map.Entry<LocalDate, List<financialData>> entry : user.getFinancialData().entrySet()) {
-            if (entry.getValue().stream().anyMatch(data -> data instanceof expenseData)) {
+        for (Map.Entry<LocalDate, List<FinancialData>> entry : user.getFinancialData().entrySet()) {
+            if (entry.getValue().stream().anyMatch(data -> data instanceof ExpenseData)) {
                 System.out.println("Date: " + entry.getKey().format(dateFormatter));
-                for (financialData data : entry.getValue()) {
-                    if (data instanceof expenseData) {
+                for (FinancialData data : entry.getValue()) {
+                    if (data instanceof ExpenseData) {
                         System.out.println("Title: " + data.getTitle() + ", Amount: Rp " + data.getAmount());
                     }
                 }
@@ -253,11 +258,11 @@ public class Valen {
         }
 
         System.out.println("Income Record: ");
-        for (Map.Entry<LocalDate, List<financialData>> entry : user.getFinancialData().entrySet()) {
-            if (entry.getValue().stream().anyMatch(data -> data instanceof incomeData)) {
+        for (Map.Entry<LocalDate, List<FinancialData>> entry : user.getFinancialData().entrySet()) {
+            if (entry.getValue().stream().anyMatch(data -> data instanceof IncomeData)) {
                 System.out.println("Date: " + entry.getKey().format(dateFormatter));
-                for (financialData data : entry.getValue()) {
-                    if (data instanceof incomeData) {
+                for (FinancialData data : entry.getValue()) {
+                    if (data instanceof IncomeData) {
                         System.out.println("Title: " + data.getTitle() + ", Amount: Rp " + data.getAmount());
                     }
                 }
@@ -267,11 +272,10 @@ public class Valen {
     }
 
     private void logout() {
-        System.out.print("\nAre you sure you want to log out? (Y/N): ");
+        System.out.print("Are you sure you want to log out? (Y/N): ");
         String choice = scan.next();
 
         if (choice.equalsIgnoreCase("Y")) {
-            currentUser = guestUser;
             displayMenu();
         } else if (choice.equalsIgnoreCase("N")) {
             mainMenu();
@@ -309,15 +313,15 @@ public class Valen {
         }
     }
 
-    private static class userData implements Serializable {
+    private static class UserData implements Serializable {
 
         private static final long serialVersionUID = 1L;
 
         private final String username;
         private final String password;
-        private final Map<LocalDate, List<financialData>> financialData;
+        private final Map<LocalDate, List<FinancialData>> financialData;
 
-        public userData(String username, String password) {
+        public UserData(String username, String password) {
             this.username = username;
             this.password = password;
             this.financialData = new HashMap<>();
@@ -331,24 +335,19 @@ public class Valen {
             return password;
         }
 
-        public Map<LocalDate, List<financialData>> getFinancialData() {
+        public Map<LocalDate, List<FinancialData>> getFinancialData() {
             return financialData;
         }
     }
 
-    private static class guestUser extends userData {
+    private static class FinancialData implements Serializable {
 
-        public guestUser() {
-            super("Guest", "");
-        }
-    }
-
-    private static class financialData implements Serializable {
+        private static final long serialVersionUID = 2L;
 
         private final String title;
         private final long amount;
 
-        public financialData(String title, long amount) {
+        public FinancialData(String title, long amount) {
             this.title = title;
             this.amount = amount;
         }
@@ -362,16 +361,20 @@ public class Valen {
         }
     }
 
-    private static class expenseData extends financialData {
+    private static class ExpenseData extends FinancialData implements Serializable {
 
-        public expenseData(String title, long amount) {
+        private static final long serialVersionUID = 3L;
+
+        public ExpenseData(String title, long amount) {
             super(title, amount);
         }
     }
 
-    private static class incomeData extends financialData {
+    private static class IncomeData extends FinancialData implements Serializable {
 
-        public incomeData(String title, long amount) {
+        private static final long serialVersionUID = 4L;
+
+        public IncomeData(String title, long amount) {
             super(title, amount);
         }
     }
