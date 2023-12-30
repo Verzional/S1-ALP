@@ -271,9 +271,10 @@ public class Valen {
                     }
                 }
             }
+            System.out.println("");
         }
 
-        System.out.println("\nIncome Record:");
+        System.out.println("Income Record:");
         for (Map.Entry<LocalDate, List<FinancialData>> entry : allEntries) {
             if (entry.getValue().stream().anyMatch(data -> data instanceof IncomeData)) {
                 System.out.println("Date: " + entry.getKey().format(dateFormatter));
@@ -283,6 +284,7 @@ public class Valen {
                     }
                 }
             }
+            System.out.println("");
         }
     }
 
@@ -290,17 +292,28 @@ public class Valen {
         try {
             System.out.print("Enter the date (DD-MM-YYYY): ");
             String dateInput = scan.next();
-            scan.nextLine(); // Consume the newline character
+            scan.nextLine();
             LocalDate date = LocalDate.parse(dateInput, dateFormatter);
 
-            for (Map.Entry<LocalDate, List<FinancialData>> entry : allEntries) {
-                if (entry.getKey().equals(date)) {
-                    for (FinancialData data : entry.getValue()) {
-                        System.out.println("Title: " + data.getTitle() + ", Amount: Rp " + data.getAmount());
-                    }
+            Optional<Map.Entry<LocalDate, List<FinancialData>>> entryOptional = allEntries.stream()
+                    .filter(entry -> entry.getKey().equals(date))
+                    .findFirst();
 
-                    System.out.print("Enter the title to edit: ");
-                    String titleToEdit = scan.next();
+            if (entryOptional.isPresent()) {
+                Map.Entry<LocalDate, List<FinancialData>> entry = entryOptional.get();
+
+                entry.getValue().forEach(data
+                        -> System.out.println("Title: " + data.getTitle() + ", Amount: Rp " + data.getAmount()));
+
+                System.out.print("Enter the title to edit: ");
+                String titleToEdit = scan.next();
+
+                Optional<FinancialData> dataOptional = entry.getValue().stream()
+                        .filter(data -> data.getTitle().equals(titleToEdit))
+                        .findFirst();
+
+                if (dataOptional.isPresent()) {
+                    FinancialData data = dataOptional.get();
 
                     System.out.print("Enter the new title: ");
                     String newTitle = scan.next();
@@ -308,24 +321,20 @@ public class Valen {
                     System.out.print("Enter the new amount: ");
                     long newAmount = scan.nextLong();
 
-                    for (FinancialData data : entry.getValue()) {
-                        if (data.getTitle().equals(titleToEdit)) {
-                            data.setTitle(newTitle);
-                            data.setAmount(newAmount);
-                            System.out.println("Record edited successfully!");
-                            serializeUserData();
-                            return;
-                        }
-                    }
+                    data.setTitle(newTitle);
+                    data.setAmount(newAmount);
 
+                    System.out.println("Record edited successfully!");
+                    serializeUserData();
+                } else {
                     System.out.println("Title not found.");
-                    return;
                 }
+            } else {
+                System.out.println("Date not found.");
             }
-            System.out.println("Date not found.");
         } catch (Exception e) {
             System.out.println("Invalid date format. Please use DD-MM-YYYY.");
-            scan.nextLine(); // Consume the invalid input
+            scan.nextLine();
         }
     }
 
@@ -336,22 +345,26 @@ public class Valen {
             scan.nextLine();
             LocalDate date = LocalDate.parse(dateInput, dateFormatter);
 
-            for (Map.Entry<LocalDate, List<FinancialData>> entry : allEntries) {
-                if (entry.getKey().equals(date)) {
-                    for (FinancialData data : entry.getValue()) {
-                        System.out.println("Title: " + data.getTitle() + ", Amount: Rp " + data.getAmount());
-                    }
+            Optional<Map.Entry<LocalDate, List<FinancialData>>> entryOptional = allEntries.stream()
+                    .filter(entry -> entry.getKey().equals(date))
+                    .findFirst();
 
-                    System.out.print("Enter the title to remove: ");
-                    String titleToRemove = scan.next();
+            if (entryOptional.isPresent()) {
+                Map.Entry<LocalDate, List<FinancialData>> entry = entryOptional.get();
 
-                    entry.getValue().removeIf(data -> data.getTitle().equals(titleToRemove));
-                    System.out.println("Record removed successfully!");
-                    serializeUserData();
-                    return;
-                }
+                entry.getValue().forEach(data
+                        -> System.out.println("Title: " + data.getTitle() + ", Amount: Rp " + data.getAmount()));
+
+                System.out.print("Enter the title to remove: ");
+                String titleToRemove = scan.next();
+
+                entry.getValue().removeIf(data -> data.getTitle().equals(titleToRemove));
+
+                System.out.println("Record removed successfully!");
+                serializeUserData();
+            } else {
+                System.out.println("Date not found.");
             }
-            System.out.println("Date not found.");
         } catch (Exception e) {
             System.out.println("Invalid date format. Please use DD-MM-YYYY.");
             scan.nextLine();
@@ -450,8 +463,8 @@ public class Valen {
         public void setAmount(long amount) {
             this.amount = amount;
         }
-        
-        public void setTitle(String title){
+
+        public void setTitle(String title) {
             this.title = title;
         }
     }
