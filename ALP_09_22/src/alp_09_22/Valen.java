@@ -381,6 +381,7 @@ public class Valen {
             }
         }
 
+        System.out.println("---------------------------");
         System.out.println("Income Record:");
         for (Map.Entry<LocalDate, List<FinancialData>> entry : allEntries) {
             if (entry.getValue().stream().anyMatch(data -> data instanceof IncomeData)) {
@@ -412,10 +413,10 @@ public class Valen {
             List<FinancialData> dataList = entry.getValue();
 
             if (!dataList.isEmpty()) {
-                System.out.println(String.format("| %-18s | %-21s | %-22s |", date.format(dateFormatter), dataList.get(0).getTitle(), formatAmount(dataList.get(0).getAmount())));
+                System.out.println(String.format("| %-18s | %-21s | %-22s |", date.format(dateFormatter), dataList.get(0).getTitle(), formatAmount(dataList.get(0).getAmount(), dataList.get(0) instanceof ExpenseData)));
 
                 for (int i = 1; i < dataList.size(); i++) {
-                    System.out.println(String.format("| %-18s | %-21s | %-22s |", "", dataList.get(i).getTitle(), formatAmount(dataList.get(i).getAmount())));
+                    System.out.println(String.format("| %-18s | %-21s | %-22s |", "", dataList.get(i).getTitle(), formatAmount(dataList.get(i).getAmount(), dataList.get(i) instanceof ExpenseData)));
                 }
             }
 
@@ -431,8 +432,8 @@ public class Valen {
         System.out.println(" ---------------------------------------------------------------------");
     }
 
-    private String formatAmount(long amount) {
-        return (amount >= 0) ? "+  Rp " + amount : "-  Rp " + Math.abs(amount);
+    private String formatAmount(long amount, boolean isExpense) {
+        return (isExpense ? "- " : "+ ") + "Rp " + Math.abs(amount);
     }
 
     private void logout() {
