@@ -9,11 +9,9 @@ import java.text.NumberFormat;
 
 public class Valen {
 
-    private List<Map.Entry<LocalDate, List<FinancialData>>> allEntries;
-    private UserData currentUser;
     private int count;
     private final Scanner scan;
-    private final String[] pass;
+    private final Map<String, String> pass;
     private final Map<String, UserData> users;
     private final DateTimeFormatter dateFormatter;
     private static final String MENU_HEADER = """
@@ -21,11 +19,13 @@ public class Valen {
                                           Welcome to Finner!
                                      ---------------------------
                                      """;
+    private List<Map.Entry<LocalDate, List<FinancialData>>> allEntries;
+    private UserData currentUser;
 
     public Valen() {
         count = 0;
         scan = new Scanner(System.in);
-        pass = new String[100];
+        pass = new HashMap<>();
         users = new HashMap<>();
         dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
         loadUserData();
@@ -45,7 +45,7 @@ public class Valen {
         return prefix + "Rp " + formattedAmount;
     }
 
-    private boolean validPass() {
+    private boolean validPass(String username) {
         System.out.print("Password (at least 8 characters, containing uppercase, lowercase, digit, and symbol): ");
         String newPassword = scan.next();
 
@@ -72,7 +72,7 @@ public class Valen {
         }
 
         if (checkUpper && checkLower && checkDigit && checkSymbol) {
-            pass[count] = newPassword;
+            pass.put(username, newPassword);
             return true;
         } else {
             System.out.println("Password must contain at least one uppercase letter, one lowercase letter, one digit, and one symbol.");
@@ -150,10 +150,10 @@ public class Valen {
         System.out.print("Username: ");
         String newUsername = scan.next();
 
-        while (!validPass()) {
+        while (!validPass(newUsername)) {
         }
 
-        users.put(newUsername, new UserData(newUsername, pass[count]));
+        users.put(newUsername, new UserData(newUsername, pass.get(newUsername)));
         System.out.println("Account created successfully!");
         count++;
     }
