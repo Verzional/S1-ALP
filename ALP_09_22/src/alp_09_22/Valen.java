@@ -2,14 +2,10 @@ package alp_09_22;
 
 import java.io.*;
 import java.util.*;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Scanner;
-import java.util.Locale;
-import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.text.NumberFormat;
 
 public class Valen {
 
@@ -127,7 +123,6 @@ public class Valen {
                         System.out.println("Invalid option, please try again.");
                 }
             } catch (InputMismatchException e) {
-                System.out.println("---------------------------");
                 System.out.println("Invalid Option, please try again.");
                 scan.nextLine();
             }
