@@ -5,13 +5,16 @@ import java.util.*;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Scanner;
+import java.util.Locale;
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 public class Valen {
 
-    private UserData currentUser;
     private List<Map.Entry<LocalDate, List<FinancialData>>> allEntries;
+    private UserData currentUser;
     private int count;
     private final Scanner scan;
     private final String[] pass;
@@ -26,7 +29,7 @@ public class Valen {
     public Valen() {
         count = 0;
         scan = new Scanner(System.in);
-        pass = new String[10];
+        pass = new String[100];
         users = new HashMap<>();
         dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
         loadUserData();
@@ -35,6 +38,15 @@ public class Valen {
     public static void main(String[] args) {
         Valen finner = new Valen();
         finner.displayMenu();
+    }
+
+    private String formatAmount(long amount, boolean isExpense) {
+        String prefix = isExpense ? "- " : "+ ";
+
+        NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.getDefault());
+        String formattedAmount = numberFormat.format(Math.abs(amount));
+
+        return prefix + "Rp " + formattedAmount;
     }
 
     private boolean validPass() {
@@ -115,6 +127,7 @@ public class Valen {
                         System.out.println("Invalid option, please try again.");
                 }
             } catch (InputMismatchException e) {
+                System.out.println("---------------------------");
                 System.out.println("Invalid Option, please try again.");
                 scan.nextLine();
             }
@@ -124,6 +137,7 @@ public class Valen {
     private void login() {
         System.out.print("Username: ");
         String username = scan.next();
+
         System.out.print("Password: ");
         String password = scan.next();
 
@@ -202,6 +216,7 @@ public class Valen {
 
             System.out.print("Enter the expense title: ");
             String expenseTitle = scan.next() + scan.nextLine();
+
             System.out.print("Enter the expense amount: ");
             long expenseAmount = scan.nextLong();
 
@@ -218,7 +233,7 @@ public class Valen {
 
             extraRecordExpense();
         } catch (Exception e) {
-            System.out.println("Invalid date format. Please use DD-MM-YYYY.");
+            System.out.println("Invalid input. Please try again.");
             scan.nextLine();
         }
         serializeUserData();
@@ -234,6 +249,7 @@ public class Valen {
 
             System.out.print("Enter the income title: ");
             String incomeTitle = scan.next() + scan.nextLine();
+
             System.out.print("Enter the income amount: ");
             long incomeAmount = scan.nextLong();
 
@@ -250,46 +266,46 @@ public class Valen {
 
             extraRecordIncome();
         } catch (Exception e) {
-            System.out.println("Invalid date format. Please use DD-MM-YYYY.");
+            System.out.println("Invalid input. Please try again.");
             scan.nextLine();
         }
         serializeUserData();
     }
 
     private void view() {
-        UserData user = users.get(currentUser.getUsername());
-        allEntries = new ArrayList<>(user.getFinancialData().entrySet());
-        allEntries.sort(Comparator.comparing(Map.Entry::getKey));
+        System.out.println("""
+                           Menu: 1. Find Record
+                                 2. All Records
+                                 3. Full Balance Sheet
+                                 4. Monthly Balance Sheet""");
+        try {
+            System.out.print("Choose an Option: ");
+            int option = scan.nextInt();
+            System.out.println("---------------------------");
 
-        System.out.println("Expense Record:");
-        for (Map.Entry<LocalDate, List<FinancialData>> entry : allEntries) {
-            if (entry.getValue().stream().anyMatch(data -> data instanceof ExpenseData)) {
-                System.out.println("Date: " + entry.getKey().format(dateFormatter));
-                for (FinancialData data : entry.getValue()) {
-                    if (data instanceof ExpenseData) {
-                        System.out.println("Title: " + data.getTitle() + ", Amount: Rp " + data.getAmount());
-                    }
-                }
+            switch (option) {
+                case 1 ->
+                    findRecord();
+                case 2 ->
+                    allRecords();
+                case 3 ->
+                    fullBalanceSheet();
+                case 4 ->
+                    monthlyBalanceSheet();
+                default ->
+                    System.out.println("Invalid option, please try again.");
             }
-            System.out.println("");
-        }
-
-        System.out.println("Income Record:");
-        for (Map.Entry<LocalDate, List<FinancialData>> entry : allEntries) {
-            if (entry.getValue().stream().anyMatch(data -> data instanceof IncomeData)) {
-                System.out.println("Date: " + entry.getKey().format(dateFormatter));
-                for (FinancialData data : entry.getValue()) {
-                    if (data instanceof IncomeData) {
-                        System.out.println("Title: " + data.getTitle() + ", Amount: Rp " + data.getAmount());
-                    }
-                }
-            }
-            System.out.println("");
+        } catch (InputMismatchException e) {
+            System.out.println("Invalid option, please try again.");
         }
     }
 
     private void editRecord() {
         try {
+            UserData user = users.get(currentUser.getUsername());
+            allEntries = new ArrayList<>(user.getFinancialData().entrySet());
+            allEntries.sort(Comparator.comparing(Map.Entry::getKey));
+
             System.out.print("Enter the date (DD-MM-YYYY): ");
             String dateInput = scan.next();
             scan.nextLine();
@@ -306,7 +322,7 @@ public class Valen {
                         -> System.out.println("Title: " + data.getTitle() + ", Amount: Rp " + data.getAmount()));
 
                 System.out.print("Enter the title to edit: ");
-                String titleToEdit = scan.next();
+                String titleToEdit = scan.nextLine();
 
                 Optional<FinancialData> dataOptional = entry.getValue().stream()
                         .filter(data -> data.getTitle().equals(titleToEdit))
@@ -316,7 +332,7 @@ public class Valen {
                     FinancialData data = dataOptional.get();
 
                     System.out.print("Enter the new title: ");
-                    String newTitle = scan.next();
+                    String newTitle = scan.nextLine();
 
                     System.out.print("Enter the new amount: ");
                     long newAmount = scan.nextLong();
@@ -330,16 +346,20 @@ public class Valen {
                     System.out.println("Title not found.");
                 }
             } else {
-                System.out.println("Date not found.");
+                System.out.println("No records found for the given date.");
             }
-        } catch (Exception e) {
+        } catch (DateTimeParseException e) {
             System.out.println("Invalid date format. Please use DD-MM-YYYY.");
-            scan.nextLine();
+            mainMenu();
         }
     }
 
     private void removeRecord() {
         try {
+            UserData user = users.get(currentUser.getUsername());
+            allEntries = new ArrayList<>(user.getFinancialData().entrySet());
+            allEntries.sort(Comparator.comparing(Map.Entry::getKey));
+
             System.out.print("Enter the date (DD-MM-YYYY): ");
             String dateInput = scan.next();
             scan.nextLine();
@@ -356,17 +376,160 @@ public class Valen {
                         -> System.out.println("Title: " + data.getTitle() + ", Amount: Rp " + data.getAmount()));
 
                 System.out.print("Enter the title to remove: ");
-                String titleToRemove = scan.next();
+                String titleToRemove = scan.nextLine();
 
-                entry.getValue().removeIf(data -> data.getTitle().equals(titleToRemove));
+                boolean removed = entry.getValue().removeIf(data -> data.getTitle().equals(titleToRemove));
 
-                System.out.println("Record removed successfully!");
-                serializeUserData();
+                if (removed) {
+                    System.out.println("Record removed successfully!");
+                    serializeUserData();
+                } else {
+                    System.out.println("Title not found.");
+                }
             } else {
-                System.out.println("Date not found.");
+                System.out.println("No records found for the given date.");
             }
-        } catch (Exception e) {
+        } catch (DateTimeParseException e) {
             System.out.println("Invalid date format. Please use DD-MM-YYYY.");
+            mainMenu();
+        }
+    }
+
+    private void findRecord() {
+        try {
+            UserData user = users.get(currentUser.getUsername());
+            allEntries = new ArrayList<>(user.getFinancialData().entrySet());
+            allEntries.sort(Comparator.comparing(Map.Entry::getKey));
+
+            System.out.print("Enter the date (DD-MM-YYYY): ");
+            String dateInput = scan.next();
+            scan.nextLine();
+            LocalDate date = LocalDate.parse(dateInput, dateFormatter);
+
+            Optional<Map.Entry<LocalDate, List<FinancialData>>> entryOptional = allEntries.stream()
+                    .filter(entry -> entry.getKey().equals(date))
+                    .findFirst();
+
+            if (entryOptional.isPresent()) {
+                Map.Entry<LocalDate, List<FinancialData>> entry = entryOptional.get();
+
+                entry.getValue().forEach(data
+                        -> System.out.println("Title: " + data.getTitle() + ", Amount: Rp " + data.getAmount()));
+            } else {
+                System.out.println("No records found for the given date.");
+            }
+        } catch (DateTimeParseException e) {
+            System.out.println("Invalid date format. Please use DD-MM-YYYY.");
+            mainMenu();
+        }
+    }
+
+    private void allRecords() {
+        UserData user = users.get(currentUser.getUsername());
+        allEntries = new ArrayList<>(user.getFinancialData().entrySet());
+        allEntries.sort(Comparator.comparing(Map.Entry::getKey));
+
+        System.out.println("Expense Record:");
+        for (Map.Entry<LocalDate, List<FinancialData>> entry : allEntries) {
+            if (entry.getValue().stream().anyMatch(data -> data instanceof ExpenseData)) {
+                System.out.println("Date: " + entry.getKey().format(dateFormatter));
+                for (FinancialData data : entry.getValue()) {
+                    if (data instanceof ExpenseData) {
+                        System.out.println("Title: " + data.getTitle() + ", Amount: Rp " + data.getAmount());
+                    }
+                }
+                System.out.println("");
+            }
+        }
+
+        System.out.println("---------------------------");
+        System.out.println("Income Record:");
+        for (Map.Entry<LocalDate, List<FinancialData>> entry : allEntries) {
+            if (entry.getValue().stream().anyMatch(data -> data instanceof IncomeData)) {
+                System.out.println("Date: " + entry.getKey().format(dateFormatter));
+                for (FinancialData data : entry.getValue()) {
+                    if (data instanceof IncomeData) {
+                        System.out.println("Title: " + data.getTitle() + ", Amount: Rp " + data.getAmount());
+                    }
+                }
+                System.out.println("");
+            }
+        }
+    }
+
+    private void fullBalanceSheet() {
+        UserData user = users.get(currentUser.getUsername());
+        allEntries = new ArrayList<>(user.getFinancialData().entrySet());
+        allEntries.sort(Comparator.comparing(Map.Entry::getKey));
+
+        System.out.println(" \n---------------------------------------------------------------------");
+        System.out.println("|        Date        |         Title         |         Amount         |");
+        System.out.println(" ---------------------------------------------------------------------");
+
+        long totalIncome = 0;
+        long totalExpense = 0;
+
+        for (Map.Entry<LocalDate, List<FinancialData>> entry : allEntries) {
+            LocalDate date = entry.getKey();
+            List<FinancialData> dataList = entry.getValue();
+            if (!dataList.isEmpty()) {
+                System.out.println(String.format("| %-18s | %-21s | %-22s |", date.format(dateFormatter), dataList.get(0).getTitle(), formatAmount(dataList.get(0).getAmount(), dataList.get(0) instanceof ExpenseData)));
+                for (int i = 1; i < dataList.size(); i++) {
+                    System.out.println(String.format("| %-18s | %-21s | %-22s |", "", dataList.get(i).getTitle(), formatAmount(dataList.get(i).getAmount(), dataList.get(i) instanceof ExpenseData)));
+                }
+            }
+            totalIncome += dataList.stream().filter(d -> d instanceof IncomeData).mapToLong(FinancialData::getAmount).sum();
+            totalExpense += dataList.stream().filter(d -> d instanceof ExpenseData).mapToLong(FinancialData::getAmount).sum();
+        }
+        System.out.println(" ---------------------------------------------------------------------");
+        System.out.println(String.format("| Total Income       | %-32s               |", formatAmount(totalIncome, false)));
+        System.out.println(String.format("| Total Expense      | %-32s               |", formatAmount(totalExpense, true)));
+        System.out.println(" ---------------------------------------------------------------------");
+        System.out.println(String.format("| Net Cash Flow      | %-32s               |", formatAmount(totalIncome - totalExpense, false)));
+        System.out.println(" ---------------------------------------------------------------------\n");
+    }
+
+    private void monthlyBalanceSheet() {
+        try {
+            UserData user = users.get(currentUser.getUsername());
+            allEntries = new ArrayList<>(user.getFinancialData().entrySet());
+            allEntries.sort(Comparator.comparing(Map.Entry::getKey));
+
+            System.out.print("Enter the month (MM): ");
+            int desiredMonth = scan.nextInt();
+            System.out.print("Enter the year (YYYY): ");
+            int desiredYear = scan.nextInt();
+            System.out.println("---------------------------");
+
+            System.out.println(" \n---------------------------------------------------------------------");
+            System.out.println("|        Date        |         Title         |         Amount         |");
+            System.out.println(" ---------------------------------------------------------------------");
+
+            long totalIncome = 0;
+            long totalExpense = 0;
+
+            for (Map.Entry<LocalDate, List<FinancialData>> entry : allEntries) {
+                LocalDate date = entry.getKey();
+                if (date.getMonthValue() == desiredMonth && date.getYear() == desiredYear) {
+                    List<FinancialData> dataList = entry.getValue();
+                    if (!dataList.isEmpty()) {
+                        System.out.println(String.format("| %-18s | %-21s | %-22s |", date.format(dateFormatter), dataList.get(0).getTitle(), formatAmount(dataList.get(0).getAmount(), dataList.get(0) instanceof ExpenseData)));
+                        for (int i = 1; i < dataList.size(); i++) {
+                            System.out.println(String.format("| %-18s | %-21s | %-22s |", "", dataList.get(i).getTitle(), formatAmount(dataList.get(i).getAmount(), dataList.get(i) instanceof ExpenseData)));
+                        }
+                    }
+                    totalIncome += dataList.stream().filter(d -> d instanceof IncomeData).mapToLong(FinancialData::getAmount).sum();
+                    totalExpense += dataList.stream().filter(d -> d instanceof ExpenseData).mapToLong(FinancialData::getAmount).sum();
+                }
+            }
+            System.out.println(" ---------------------------------------------------------------------");
+            System.out.println(String.format("| Total Income       | %-32s               |", formatAmount(totalIncome, false)));
+            System.out.println(String.format("| Total Expense      | %-32s               |", formatAmount(totalExpense, true)));
+            System.out.println(" ---------------------------------------------------------------------");
+            System.out.println(String.format("| Net Cash Flow      | %-32s               |", formatAmount(totalIncome - totalExpense, false)));
+            System.out.println(" ---------------------------------------------------------------------\n");
+        } catch (InputMismatchException e) {
+            System.out.println("Invalid input. Please enter valid month and year.");
             scan.nextLine();
         }
     }
