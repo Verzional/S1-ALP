@@ -127,7 +127,6 @@ public class Valen {
                         System.out.println("Invalid option, please try again.");
                 }
             } catch (InputMismatchException e) {
-                System.out.println("---------------------------");
                 System.out.println("Invalid Option, please try again.");
                 scan.nextLine();
             }
@@ -318,8 +317,10 @@ public class Valen {
             if (entryOptional.isPresent()) {
                 Map.Entry<LocalDate, List<FinancialData>> entry = entryOptional.get();
 
-                entry.getValue().forEach(data
-                        -> System.out.println("Title: " + data.getTitle() + ", Amount: Rp " + data.getAmount()));
+                entry.getValue().forEach(data -> {
+                    String formattedAmount = formatAmount(data.getAmount(), data instanceof ExpenseData);
+                    System.out.println("Title: " + data.getTitle() + ", Amount: " + formattedAmount);
+                });
 
                 System.out.print("Enter the title to edit: ");
                 String titleToEdit = scan.nextLine();
@@ -372,8 +373,10 @@ public class Valen {
             if (entryOptional.isPresent()) {
                 Map.Entry<LocalDate, List<FinancialData>> entry = entryOptional.get();
 
-                entry.getValue().forEach(data
-                        -> System.out.println("Title: " + data.getTitle() + ", Amount: Rp " + data.getAmount()));
+                entry.getValue().forEach(data -> {
+                    String formattedAmount = formatAmount(data.getAmount(), data instanceof ExpenseData);
+                    System.out.println("Title: " + data.getTitle() + ", Amount: " + formattedAmount);
+                });
 
                 System.out.print("Enter the title to remove: ");
                 String titleToRemove = scan.nextLine();
@@ -413,8 +416,10 @@ public class Valen {
             if (entryOptional.isPresent()) {
                 Map.Entry<LocalDate, List<FinancialData>> entry = entryOptional.get();
 
-                entry.getValue().forEach(data
-                        -> System.out.println("Title: " + data.getTitle() + ", Amount: Rp " + data.getAmount()));
+                entry.getValue().forEach(data -> {
+                    String formattedAmount = formatAmount(data.getAmount(), data instanceof ExpenseData);
+                    System.out.println("Title: " + data.getTitle() + ", Amount: " + formattedAmount);
+                });
             } else {
                 System.out.println("No records found for the given date.");
             }
@@ -435,7 +440,8 @@ public class Valen {
                 System.out.println("Date: " + entry.getKey().format(dateFormatter));
                 for (FinancialData data : entry.getValue()) {
                     if (data instanceof ExpenseData) {
-                        System.out.println("Title: " + data.getTitle() + ", Amount: Rp " + data.getAmount());
+                        String formattedAmount = formatAmount(data.getAmount(), true);
+                        System.out.println("Title: " + data.getTitle() + ", Amount: " + formattedAmount);
                     }
                 }
                 System.out.println("");
@@ -449,7 +455,8 @@ public class Valen {
                 System.out.println("Date: " + entry.getKey().format(dateFormatter));
                 for (FinancialData data : entry.getValue()) {
                     if (data instanceof IncomeData) {
-                        System.out.println("Title: " + data.getTitle() + ", Amount: Rp " + data.getAmount());
+                        String formattedAmount = formatAmount(data.getAmount(), false);
+                        System.out.println("Title: " + data.getTitle() + ", Amount: " + formattedAmount);
                     }
                 }
                 System.out.println("");
