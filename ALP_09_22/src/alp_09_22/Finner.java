@@ -245,7 +245,8 @@ public class Finner {
                            Menu: 1. Find Record
                                  2. All Records
                                  3. Full Balance Sheet
-                                 4. Monthly Balance Sheet""");
+                                 4. Yearly Balance Sheet
+                                 5. Monthly Balance Sheet""");
         try {
             System.out.print("Choose an Option: ");
             int option = scan.nextInt();
@@ -259,6 +260,8 @@ public class Finner {
                 case 3 ->
                     fullBalanceSheet();
                 case 4 ->
+                    yearlyBalanceSheet();
+                case 5 ->
                     monthlyBalanceSheet();
                 default ->
                     System.out.println("Invalid option choice, please try again.");
@@ -470,6 +473,49 @@ public class Finner {
         System.out.println(" ---------------------------------------------------------------------");
         System.out.println(String.format("| Net Cash Flow      | %-32s               |", formatNetCashFlow(totalIncome - totalExpense)));
         System.out.println(" ---------------------------------------------------------------------\n");
+    }
+
+    private void yearlyBalanceSheet() {
+        try {
+            UserData user = users.get(currentUser.getUsername());
+            allEntries = new ArrayList<>(user.getFinancialData().entrySet());
+            allEntries.sort(Comparator.comparing(Map.Entry::getKey));
+
+            System.out.print("Enter the year (YYYY): ");
+            int desiredYear = scan.nextInt();
+            System.out.println("---------------------------");
+
+            System.out.println(" \n ---------------------------------------------------------------------");
+            System.out.println("|        Date        |         Title         |         Amount         |");
+            System.out.println(" ---------------------------------------------------------------------");
+
+            long totalIncome = 0;
+            long totalExpense = 0;
+
+            for (Map.Entry<LocalDate, List<FinancialData>> entry : allEntries) {
+                LocalDate date = entry.getKey();
+                if (date.getYear() == desiredYear) {
+                    List<FinancialData> dataList = entry.getValue();
+                    if (!dataList.isEmpty()) {
+                        System.out.println(String.format("| %-18s | %-21s | %-22s |", date.format(DATE_FORMATTER), dataList.get(0).getTitle(), formatAmount(dataList.get(0).getAmount(), dataList.get(0) instanceof ExpenseData)));
+                        for (int i = 1; i < dataList.size(); i++) {
+                            System.out.println(String.format("| %-18s | %-21s | %-22s |", "", dataList.get(i).getTitle(), formatAmount(dataList.get(i).getAmount(), dataList.get(i) instanceof ExpenseData)));
+                        }
+                    }
+                    totalIncome += dataList.stream().filter(d -> d instanceof IncomeData).mapToLong(FinancialData::getAmount).sum();
+                    totalExpense += dataList.stream().filter(d -> d instanceof ExpenseData).mapToLong(FinancialData::getAmount).sum();
+                }
+            }
+            System.out.println(" ---------------------------------------------------------------------");
+            System.out.println(String.format("| Total Income       | %-32s               |", formatAmount(totalIncome, false)));
+            System.out.println(String.format("| Total Expense      | %-32s               |", formatAmount(totalExpense, true)));
+            System.out.println(" ---------------------------------------------------------------------");
+            System.out.println(String.format("| Net Cash Flow      | %-32s               |", formatNetCashFlow(totalIncome - totalExpense)));
+            System.out.println(" ---------------------------------------------------------------------\n");
+        } catch (InputMismatchException e) {
+            System.out.println("Invalid input, please enter a valid year.");
+            scan.nextLine();
+        }
     }
 
     private void monthlyBalanceSheet() {
