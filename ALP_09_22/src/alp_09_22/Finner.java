@@ -79,10 +79,10 @@ public class Finner {
                     case 4 ->
                         exit();
                     default ->
-                        System.out.println("Invalid option, please try again.");
+                        System.out.println("Invalid option choice, please try again.");
                 }
             } catch (InputMismatchException e) {
-                System.out.println("Invalid Option, please try again.");
+                System.out.println("Invalid option choice, please try again.");
                 scan.nextLine();
             }
         }
@@ -445,7 +445,7 @@ public class Finner {
         allEntries = new ArrayList<>(user.getFinancialData().entrySet());
         allEntries.sort(Comparator.comparing(Map.Entry::getKey));
 
-        System.out.println(" \n---------------------------------------------------------------------");
+        System.out.println(" \n ---------------------------------------------------------------------");
         System.out.println("|        Date        |         Title         |         Amount         |");
         System.out.println(" ---------------------------------------------------------------------");
 
@@ -468,7 +468,7 @@ public class Finner {
         System.out.println(String.format("| Total Income       | %-32s               |", formatAmount(totalIncome, false)));
         System.out.println(String.format("| Total Expense      | %-32s               |", formatAmount(totalExpense, true)));
         System.out.println(" ---------------------------------------------------------------------");
-        System.out.println(String.format("| Net Cash Flow      | %-32s               |", formatAmount(totalIncome - totalExpense, totalIncome - totalExpense >= 0)));
+        System.out.println(String.format("| Net Cash Flow      | %-32s               |", formatNetCashFlow(totalIncome - totalExpense)));
         System.out.println(" ---------------------------------------------------------------------\n");
     }
 
@@ -484,7 +484,7 @@ public class Finner {
             int desiredYear = scan.nextInt();
             System.out.println("---------------------------");
 
-            System.out.println(" \n---------------------------------------------------------------------");
+            System.out.println(" \n ---------------------------------------------------------------------");
             System.out.println("|        Date        |         Title         |         Amount         |");
             System.out.println(" ---------------------------------------------------------------------");
 
@@ -509,7 +509,7 @@ public class Finner {
             System.out.println(String.format("| Total Income       | %-32s               |", formatAmount(totalIncome, false)));
             System.out.println(String.format("| Total Expense      | %-32s               |", formatAmount(totalExpense, true)));
             System.out.println(" ---------------------------------------------------------------------");
-            System.out.println(String.format("| Net Cash Flow      | %-32s               |", formatAmount(totalIncome - totalExpense, totalIncome - totalExpense >= 0)));
+            System.out.println(String.format("| Net Cash Flow      | %-32s               |", formatNetCashFlow(totalIncome - totalExpense)));
             System.out.println(" ---------------------------------------------------------------------\n");
         } catch (InputMismatchException e) {
             System.out.println("Invalid input, please enter valid month and year.");
@@ -601,6 +601,13 @@ public class Finner {
         String formattedAmount = numberFormat.format(Math.abs(amount));
 
         return prefix + "Rp " + formattedAmount;
+    }
+
+    private String formatNetCashFlow(long netCashFlow) {
+        String prefix = (netCashFlow >= 0) ? "+ " : "- ";
+        NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.getDefault());
+        String formattedNetCashFlow = numberFormat.format(Math.abs(netCashFlow));
+        return prefix + "Rp " + formattedNetCashFlow;
     }
 
     private static class UserData implements Serializable {
