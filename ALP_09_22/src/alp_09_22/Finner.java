@@ -101,7 +101,7 @@ public class Finner {
             currentUser = user;
             mainMenu();
         } else {
-            System.out.println("Invalid username or password. Please try again.");
+            System.out.println("Invalid username or password, please try again.");
         }
     }
 
@@ -151,10 +151,10 @@ public class Finner {
                     case 6 ->
                         logout();
                     default ->
-                        System.out.println("Invalid option, please try again.");
+                        System.out.println("Invalid option choice, please try again.");
                 }
             } catch (InputMismatchException e) {
-                System.out.println("Invalid option, please try again.");
+                System.out.println("Invalid option choice, please try again.");
                 scan.nextLine();
             }
         }
@@ -171,8 +171,15 @@ public class Finner {
             System.out.print("Enter the expense title: ");
             String expenseTitle = scan.next() + scan.nextLine();
 
-            System.out.print("Enter the expense amount: ");
-            long expenseAmount = scan.nextLong();
+            long expenseAmount;
+            do {
+                System.out.print("Enter the expense amount: ");
+                expenseAmount = scan.nextLong();
+
+                if (expenseAmount < 0) {
+                    System.out.println("Invalid amount, please enter a positive amount.");
+                }
+            } while (expenseAmount < 0);
 
             FinancialData data = new ExpenseData(expenseTitle, expenseAmount);
 
@@ -187,7 +194,7 @@ public class Finner {
 
             extraRecordExpense();
         } catch (DateTimeParseException e) {
-            System.out.println("Invalid date format. Please use DD-MM-YYYY.");
+            System.out.println("Invalid date format, please use DD-MM-YYYY.");
             scan.nextLine();
         }
         serializeUserData();
@@ -204,8 +211,15 @@ public class Finner {
             System.out.print("Enter the income title: ");
             String incomeTitle = scan.next() + scan.nextLine();
 
-            System.out.print("Enter the income amount: ");
-            long incomeAmount = scan.nextLong();
+            long incomeAmount;
+            do {
+                System.out.print("Enter the income amount: ");
+                incomeAmount = scan.nextLong();
+
+                if (incomeAmount < 0) {
+                    System.out.println("Invalid amount, please enter a positive amount.");
+                }
+            } while (incomeAmount < 0);
 
             FinancialData data = new IncomeData(incomeTitle, incomeAmount);
 
@@ -220,7 +234,7 @@ public class Finner {
 
             extraRecordIncome();
         } catch (DateTimeParseException e) {
-            System.out.println("Invalid date format. Please use DD-MM-YYYY.");
+            System.out.println("Invalid date format, please use DD-MM-YYYY.");
             scan.nextLine();
         }
         serializeUserData();
@@ -247,10 +261,10 @@ public class Finner {
                 case 4 ->
                     monthlyBalanceSheet();
                 default ->
-                    System.out.println("Invalid option, please try again.");
+                    System.out.println("Invalid option choice, please try again.");
             }
         } catch (InputMismatchException e) {
-            System.out.println("Invalid option, please try again.");
+            System.out.println("Invalid option choice, please try again.");
         }
     }
 
@@ -290,8 +304,15 @@ public class Finner {
                     System.out.print("Enter the new title: ");
                     String newTitle = scan.nextLine();
 
-                    System.out.print("Enter the new amount: ");
-                    long newAmount = scan.nextLong();
+                    long newAmount;
+                    do {
+                        System.out.print("Enter the new amount: ");
+                        newAmount = scan.nextLong();
+
+                        if (newAmount < 0) {
+                            System.out.println("Invalid amount, please enter a positive amount.");
+                        }
+                    } while (newAmount < 0);
 
                     data.setTitle(newTitle);
                     data.setAmount(newAmount);
@@ -305,7 +326,7 @@ public class Finner {
                 System.out.println("No records found for the given date.");
             }
         } catch (DateTimeParseException e) {
-            System.out.println("Invalid date format. Please use DD-MM-YYYY.");
+            System.out.println("Invalid date format, please use DD-MM-YYYY.");
             mainMenu();
         }
     }
@@ -348,7 +369,7 @@ public class Finner {
                 System.out.println("No records found for the given date.");
             }
         } catch (DateTimeParseException e) {
-            System.out.println("Invalid date format. Please use DD-MM-YYYY.");
+            System.out.println("Invalid date format, please use DD-MM-YYYY.");
             mainMenu();
         }
     }
@@ -379,7 +400,7 @@ public class Finner {
                 System.out.println("No records found for the given date.");
             }
         } catch (DateTimeParseException e) {
-            System.out.println("Invalid date format. Please use DD-MM-YYYY.");
+            System.out.println("Invalid date format, please use DD-MM-YYYY.");
             mainMenu();
         }
     }
@@ -447,7 +468,7 @@ public class Finner {
         System.out.println(String.format("| Total Income       | %-32s               |", formatAmount(totalIncome, false)));
         System.out.println(String.format("| Total Expense      | %-32s               |", formatAmount(totalExpense, true)));
         System.out.println(" ---------------------------------------------------------------------");
-        System.out.println(String.format("| Net Cash Flow      | %-32s               |", formatAmount(totalIncome - totalExpense, false)));
+        System.out.println(String.format("| Net Cash Flow      | %-32s               |", formatAmount(totalIncome - totalExpense, totalIncome - totalExpense >= 0)));
         System.out.println(" ---------------------------------------------------------------------\n");
     }
 
@@ -488,10 +509,10 @@ public class Finner {
             System.out.println(String.format("| Total Income       | %-32s               |", formatAmount(totalIncome, false)));
             System.out.println(String.format("| Total Expense      | %-32s               |", formatAmount(totalExpense, true)));
             System.out.println(" ---------------------------------------------------------------------");
-            System.out.println(String.format("| Net Cash Flow      | %-32s               |", formatAmount(totalIncome - totalExpense, false)));
+            System.out.println(String.format("| Net Cash Flow      | %-32s               |", formatAmount(totalIncome - totalExpense, totalIncome - totalExpense >= 0)));
             System.out.println(" ---------------------------------------------------------------------\n");
         } catch (InputMismatchException e) {
-            System.out.println("Invalid input. Please enter valid month and year.");
+            System.out.println("Invalid input, please enter valid month and year.");
             scan.nextLine();
         }
     }
@@ -505,13 +526,13 @@ public class Finner {
         } else if (choice.equalsIgnoreCase("N")) {
             mainMenu();
         } else {
-            System.out.println("Invalid Option!");
+            System.out.println("Invalid option choice, please use Y/N.");
             logout();
         }
     }
 
     private void extraRecordExpense() {
-        System.out.print("\nDo you want to record another one? (Y/N): ");
+        System.out.print("\nDo you want to record another expense? (Y/N): ");
         String choice = scan.next();
 
         if (choice.equalsIgnoreCase("Y")) {
@@ -519,13 +540,13 @@ public class Finner {
         } else if (choice.equalsIgnoreCase("N")) {
             mainMenu();
         } else {
-            System.out.println("Invalid Option, please use Y/N.");
+            System.out.println("Invalid option choice, please use Y/N.");
             extraRecordExpense();
         }
     }
 
     private void extraRecordIncome() {
-        System.out.print("\nDo you want to record another one? (Y/N): ");
+        System.out.print("\nDo you want to record another income? (Y/N): ");
         String choice = scan.next();
 
         if (choice.equalsIgnoreCase("Y")) {
@@ -533,7 +554,7 @@ public class Finner {
         } else if (choice.equalsIgnoreCase("N")) {
             mainMenu();
         } else {
-            System.out.println("Invalid Option, please use Y/N.");
+            System.out.println("Invalid option choice, please use Y/N.");
             extraRecordIncome();
         }
     }
@@ -574,7 +595,7 @@ public class Finner {
     }
 
     private String formatAmount(long amount, boolean isExpense) {
-        String prefix = isExpense ? "- " : "+ ";
+        String prefix = (amount >= 0 && !isExpense) ? "+ " : "- ";
 
         NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.getDefault());
         String formattedAmount = numberFormat.format(Math.abs(amount));
