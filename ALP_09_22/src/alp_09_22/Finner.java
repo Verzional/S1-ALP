@@ -15,13 +15,18 @@ public class Finner {
     private final Scanner scan;
     private final Map<String, String> pass;
     private final Map<String, UserData> users;
-    private static final String USER_DATA_FILE = "UserData.ser";
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+    private static final String USER_DATA_FILE = "UserData.ser";
     private static final String MENU_HEADER = """
                                      ---------------------------
                                           Welcome to Finner!
                                      ---------------------------
                                      """;
+    private static final String BALANCE_SHEET_HEADER = """
+                                                       
+                                                       ---------------------------------------------------------------------
+                                                      |        Date        |         Title         |         Amount         |
+                                                       --------------------------------------------------------------------- """;
 
     public Finner() {
         count = 0;
@@ -448,9 +453,7 @@ public class Finner {
         allEntries = new ArrayList<>(user.getFinancialData().entrySet());
         allEntries.sort(Comparator.comparing(Map.Entry::getKey));
 
-        System.out.println(" \n ---------------------------------------------------------------------");
-        System.out.println("|        Date        |         Title         |         Amount         |");
-        System.out.println(" ---------------------------------------------------------------------");
+        System.out.println(BALANCE_SHEET_HEADER);
 
         long totalIncome = 0;
         long totalExpense = 0;
@@ -485,9 +488,7 @@ public class Finner {
             int desiredYear = scan.nextInt();
             System.out.println("---------------------------");
 
-            System.out.println(" \n ---------------------------------------------------------------------");
-            System.out.println("|        Date        |         Title         |         Amount         |");
-            System.out.println(" ---------------------------------------------------------------------");
+            System.out.println(BALANCE_SHEET_HEADER);
 
             long totalIncome = 0;
             long totalExpense = 0;
@@ -530,9 +531,7 @@ public class Finner {
             int desiredYear = scan.nextInt();
             System.out.println("---------------------------");
 
-            System.out.println(" \n ---------------------------------------------------------------------");
-            System.out.println("|        Date        |         Title         |         Amount         |");
-            System.out.println(" ---------------------------------------------------------------------");
+            System.out.println(BALANCE_SHEET_HEADER);
 
             long totalIncome = 0;
             long totalExpense = 0;
@@ -654,6 +653,7 @@ public class Finner {
         NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.getDefault());
         String formattedNetCashFlow = numberFormat.format(Math.abs(netCashFlow));
         return prefix + "Rp " + formattedNetCashFlow;
+
     }
 
     private static class UserData implements Serializable {
