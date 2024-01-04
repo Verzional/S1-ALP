@@ -62,6 +62,41 @@ public class Finner {
         app.displayMenu();
     }
 
+    private boolean validPass(String username) {
+        System.out.print("Password (at least 8 characters, containing uppercase, lowercase, digit, and symbol): ");
+        String newPassword = scan.next();
+
+        if (newPassword.length() < 8) {
+            System.out.println("Password must be at least 8 characters long.");
+            return false;
+        }
+
+        boolean checkUpper = false;
+        boolean checkLower = false;
+        boolean checkDigit = false;
+        boolean checkSymbol = false;
+
+        for (char pwChar : newPassword.toCharArray()) {
+            if (Character.isUpperCase(pwChar)) {
+                checkUpper = true;
+            } else if (Character.isLowerCase(pwChar)) {
+                checkLower = true;
+            } else if (Character.isDigit(pwChar)) {
+                checkDigit = true;
+            } else {
+                checkSymbol = true;
+            }
+        }
+
+        if (checkUpper && checkLower && checkDigit && checkSymbol) {
+            pass.put(username, newPassword);
+            return true;
+        } else {
+            System.out.println("Password must contain at least one uppercase letter, one lowercase letter, one digit, and one symbol.");
+            return false;
+        }
+    }
+
     private void displayMenu() {
         while (true) {
             System.out.println(MENU_HEADER + """
@@ -69,6 +104,7 @@ public class Finner {
                              2. Create an Account 
                              3. Continue as a Guest
                              4. Exit Program""");
+
             try {
                 System.out.print("Choose an Option: ");
                 int option = scan.nextInt();
@@ -133,10 +169,12 @@ public class Finner {
             System.out.println(MENU_HEADER + """
                        Menu: 1. Record Expenses
                              2. Record Income 
-                             3. View Record
+                             3. Remove Record
                              4. Edit Record
-                             5. Remove Record                
-                             6. Logout""");
+                             5. View Record                
+                             6. Logout
+                             7. Exit Program""");
+
             try {
                 System.out.print("Choose an Option: ");
                 int option = scan.nextInt();
@@ -144,17 +182,19 @@ public class Finner {
 
                 switch (option) {
                     case 1 ->
-                        expenses();
+                        recordExpense();
                     case 2 ->
-                        income();
+                        recordIncome();
                     case 3 ->
-                        view();
+                        removeRecord();
                     case 4 ->
                         editRecord();
                     case 5 ->
-                        removeRecord();
+                        viewMenu();
                     case 6 ->
                         logout();
+                    case 7 ->
+                        exit();
                     default ->
                         System.out.println("Invalid option choice, please try again.");
                 }
@@ -165,7 +205,7 @@ public class Finner {
         }
     }
 
-    private void expenses() {
+    private void recordExpense() {
         UserData user = users.get(currentUser.getUsername());
 
         try {
@@ -177,8 +217,14 @@ public class Finner {
             String expenseTitle = scan.next() + scan.nextLine();
 
             long expenseAmount;
+
             do {
                 System.out.print("Enter the expense amount: ");
+                while (!scan.hasNextLong()) {
+                    System.out.println("Invalid input, please enter a valid number.");
+                    scan.next();
+                    System.out.print("Enter the expense amount: ");
+                }
                 expenseAmount = scan.nextLong();
 
                 if (expenseAmount < 0) {
@@ -197,7 +243,7 @@ public class Finner {
 
             System.out.println("Expense recorded successfully!");
 
-            extraRecordExpense();
+            extraExpense();
         } catch (DateTimeParseException e) {
             System.out.println("Invalid date format, please use DD-MM-YYYY.");
             scan.nextLine();
@@ -205,7 +251,7 @@ public class Finner {
         serializeUserData();
     }
 
-    private void income() {
+    private void recordIncome() {
         UserData user = users.get(currentUser.getUsername());
 
         try {
@@ -217,8 +263,14 @@ public class Finner {
             String incomeTitle = scan.next() + scan.nextLine();
 
             long incomeAmount;
+
             do {
                 System.out.print("Enter the income amount: ");
+                while (!scan.hasNextLong()) {
+                    System.out.println("Invalid input, please enter a valid number.");
+                    scan.next();
+                    System.out.print("Enter the income amount: ");
+                }
                 incomeAmount = scan.nextLong();
 
                 if (incomeAmount < 0) {
@@ -237,7 +289,7 @@ public class Finner {
 
             System.out.println("Income recorded successfully!");
 
-            extraRecordIncome();
+            extraIncome();
         } catch (DateTimeParseException e) {
             System.out.println("Invalid date format, please use DD-MM-YYYY.");
             scan.nextLine();
@@ -245,34 +297,47 @@ public class Finner {
         serializeUserData();
     }
 
-    private void view() {
-        System.out.println("""
-                           Menu: 1. Find Record
-                                 2. All Records
-                                 3. Full Balance Sheet
-                                 4. Yearly Balance Sheet
-                                 5. Monthly Balance Sheet""");
+    private void removeRecord() {
         try {
-            System.out.print("Choose an Option: ");
-            int option = scan.nextInt();
-            System.out.println("---------------------------");
+            UserData user = users.get(currentUser.getUsername());
+            allEntries = new ArrayList<>(user.getFinancialData().entrySet());
+            allEntries.sort(Comparator.comparing(Map.Entry::getKey));
 
-            switch (option) {
-                case 1 ->
-                    findRecord();
-                case 2 ->
-                    allRecords();
-                case 3 ->
-                    fullBalanceSheet();
-                case 4 ->
-                    yearlyBalanceSheet();
-                case 5 ->
-                    monthlyBalanceSheet();
-                default ->
-                    System.out.println("Invalid option choice, please try again.");
+            System.out.print("Enter the date (DD-MM-YYYY): ");
+            String dateInput = scan.next();
+            scan.nextLine();
+            LocalDate date = LocalDate.parse(dateInput, DATE_FORMATTER);
+
+            Optional<Map.Entry<LocalDate, List<FinancialData>>> entryOptional = allEntries.stream()
+                    .filter(entry -> entry.getKey().equals(date))
+                    .findFirst();
+
+            if (entryOptional.isPresent()) {
+                Map.Entry<LocalDate, List<FinancialData>> entry = entryOptional.get();
+
+                entry.getValue().forEach(data -> {
+                    String formattedAmount = formatAmount(data.getAmount(), data instanceof ExpenseData);
+                    System.out.println("Title: " + data.getTitle() + ", Amount: " + formattedAmount);
+                });
+
+                System.out.print("Enter the title to remove: ");
+                String titleToRemove = scan.nextLine();
+
+                boolean removed = entry.getValue().removeIf(data -> data.getTitle().equals(titleToRemove));
+
+                if (removed) {
+                    System.out.println("Record removed successfully!");
+                    serializeUserData();
+                    extraRemove();
+                } else {
+                    System.out.println("Title not found.");
+                }
+            } else {
+                System.out.println("No records found for the given date.");
             }
-        } catch (InputMismatchException e) {
-            System.out.println("Invalid option choice, please try again.");
+        } catch (DateTimeParseException e) {
+            System.out.println("Invalid date format, please use DD-MM-YYYY.");
+            mainMenu();
         }
     }
 
@@ -313,8 +378,14 @@ public class Finner {
                     String newTitle = scan.nextLine();
 
                     long newAmount;
+
                     do {
                         System.out.print("Enter the new amount: ");
+                        while (!scan.hasNextLong()) {
+                            System.out.println("Invalid input, please enter a valid number.");
+                            scan.next();
+                            System.out.print("Enter the new amount: ");
+                        }
                         newAmount = scan.nextLong();
 
                         if (newAmount < 0) {
@@ -327,6 +398,8 @@ public class Finner {
 
                     System.out.println("Record edited successfully!");
                     serializeUserData();
+
+                    extraEdit();
                 } else {
                     System.out.println("Title not found.");
                 }
@@ -339,46 +412,31 @@ public class Finner {
         }
     }
 
-    private void removeRecord() {
+    private void viewMenu() {
+        System.out.println("""
+                           Menu: 1. Find Record
+                                 2. Full Balance Sheet
+                                 3. Yearly Balance Sheet
+                                 4. Monthly Balance Sheet""");
         try {
-            UserData user = users.get(currentUser.getUsername());
-            allEntries = new ArrayList<>(user.getFinancialData().entrySet());
-            allEntries.sort(Comparator.comparing(Map.Entry::getKey));
+            System.out.print("Choose an Option: ");
+            int option = scan.nextInt();
+            System.out.println("---------------------------");
 
-            System.out.print("Enter the date (DD-MM-YYYY): ");
-            String dateInput = scan.next();
-            scan.nextLine();
-            LocalDate date = LocalDate.parse(dateInput, DATE_FORMATTER);
-
-            Optional<Map.Entry<LocalDate, List<FinancialData>>> entryOptional = allEntries.stream()
-                    .filter(entry -> entry.getKey().equals(date))
-                    .findFirst();
-
-            if (entryOptional.isPresent()) {
-                Map.Entry<LocalDate, List<FinancialData>> entry = entryOptional.get();
-
-                entry.getValue().forEach(data -> {
-                    String formattedAmount = formatAmount(data.getAmount(), data instanceof ExpenseData);
-                    System.out.println("Title: " + data.getTitle() + ", Amount: " + formattedAmount);
-                });
-
-                System.out.print("Enter the title to remove: ");
-                String titleToRemove = scan.nextLine();
-
-                boolean removed = entry.getValue().removeIf(data -> data.getTitle().equals(titleToRemove));
-
-                if (removed) {
-                    System.out.println("Record removed successfully!");
-                    serializeUserData();
-                } else {
-                    System.out.println("Title not found.");
-                }
-            } else {
-                System.out.println("No records found for the given date.");
+            switch (option) {
+                case 1 ->
+                    findRecord();
+                case 2 ->
+                    fullBalanceSheet();
+                case 3 ->
+                    yearlyBalanceSheet();
+                case 4 ->
+                    monthlyBalanceSheet();
+                default ->
+                    System.out.println("Invalid option choice, please try again.");
             }
-        } catch (DateTimeParseException e) {
-            System.out.println("Invalid date format, please use DD-MM-YYYY.");
-            mainMenu();
+        } catch (InputMismatchException e) {
+            System.out.println("Invalid option choice, please try again.");
         }
     }
 
@@ -410,41 +468,6 @@ public class Finner {
         } catch (DateTimeParseException e) {
             System.out.println("Invalid date format, please use DD-MM-YYYY.");
             mainMenu();
-        }
-    }
-
-    private void allRecords() {
-        UserData user = users.get(currentUser.getUsername());
-        allEntries = new ArrayList<>(user.getFinancialData().entrySet());
-        allEntries.sort(Comparator.comparing(Map.Entry::getKey));
-
-        System.out.println("Expense Record:");
-        for (Map.Entry<LocalDate, List<FinancialData>> entry : allEntries) {
-            if (entry.getValue().stream().anyMatch(data -> data instanceof ExpenseData)) {
-                System.out.println("Date: " + entry.getKey().format(DATE_FORMATTER));
-                for (FinancialData data : entry.getValue()) {
-                    if (data instanceof ExpenseData) {
-                        String formattedAmount = formatAmount(data.getAmount(), true);
-                        System.out.println("Title: " + data.getTitle() + ", Amount: " + formattedAmount);
-                    }
-                }
-                System.out.println("");
-            }
-        }
-
-        System.out.println("---------------------------");
-        System.out.println("Income Record:");
-        for (Map.Entry<LocalDate, List<FinancialData>> entry : allEntries) {
-            if (entry.getValue().stream().anyMatch(data -> data instanceof IncomeData)) {
-                System.out.println("Date: " + entry.getKey().format(DATE_FORMATTER));
-                for (FinancialData data : entry.getValue()) {
-                    if (data instanceof IncomeData) {
-                        String formattedAmount = formatAmount(data.getAmount(), false);
-                        System.out.println("Title: " + data.getTitle() + ", Amount: " + formattedAmount);
-                    }
-                }
-                System.out.println("");
-            }
         }
     }
 
@@ -576,69 +599,6 @@ public class Finner {
         }
     }
 
-    private void extraRecordExpense() {
-        System.out.print("\nDo you want to record another expense? (Y/N): ");
-        String choice = scan.next();
-
-        if (choice.equalsIgnoreCase("Y")) {
-            expenses();
-        } else if (choice.equalsIgnoreCase("N")) {
-            mainMenu();
-        } else {
-            System.out.println("Invalid option choice, please use Y/N.");
-            extraRecordExpense();
-        }
-    }
-
-    private void extraRecordIncome() {
-        System.out.print("\nDo you want to record another income? (Y/N): ");
-        String choice = scan.next();
-
-        if (choice.equalsIgnoreCase("Y")) {
-            income();
-        } else if (choice.equalsIgnoreCase("N")) {
-            mainMenu();
-        } else {
-            System.out.println("Invalid option choice, please use Y/N.");
-            extraRecordIncome();
-        }
-    }
-
-    private boolean validPass(String username) {
-        System.out.print("Password (at least 8 characters, containing uppercase, lowercase, digit, and symbol): ");
-        String newPassword = scan.next();
-
-        if (newPassword.length() < 8) {
-            System.out.println("Password must be at least 8 characters long.");
-            return false;
-        }
-
-        boolean checkUpper = false;
-        boolean checkLower = false;
-        boolean checkDigit = false;
-        boolean checkSymbol = false;
-
-        for (char pwChar : newPassword.toCharArray()) {
-            if (Character.isUpperCase(pwChar)) {
-                checkUpper = true;
-            } else if (Character.isLowerCase(pwChar)) {
-                checkLower = true;
-            } else if (Character.isDigit(pwChar)) {
-                checkDigit = true;
-            } else {
-                checkSymbol = true;
-            }
-        }
-
-        if (checkUpper && checkLower && checkDigit && checkSymbol) {
-            pass.put(username, newPassword);
-            return true;
-        } else {
-            System.out.println("Password must contain at least one uppercase letter, one lowercase letter, one digit, and one symbol.");
-            return false;
-        }
-    }
-
     private String formatAmount(long amount, boolean isExpense) {
         String prefix = (amount >= 0 && !isExpense) ? "+ " : "- ";
 
@@ -654,6 +614,36 @@ public class Finner {
         String formattedNetCashFlow = numberFormat.format(Math.abs(netCashFlow));
         return prefix + "Rp " + formattedNetCashFlow;
 
+    }
+
+    private void extraAction(String actionType, Runnable action) {
+        System.out.print("\nDo you want to " + actionType + " (Y/N): ");
+        String choice = scan.next();
+
+        if (choice.equalsIgnoreCase("Y")) {
+            action.run();
+        } else if (choice.equalsIgnoreCase("N")) {
+            mainMenu();
+        } else {
+            System.out.println("Invalid option choice, please use Y/N.");
+            extraAction(actionType, action);
+        }
+    }
+
+    private void extraExpense() {
+        extraAction("record another expense?", this::recordExpense);
+    }
+
+    private void extraIncome() {
+        extraAction("record another income?", this::recordIncome);
+    }
+
+    private void extraRemove() {
+        extraAction("remove another record?", this::removeRecord);
+    }
+
+    private void extraEdit() {
+        extraAction("edit another record?", this::editRecord);
     }
 
     private static class UserData implements Serializable {
