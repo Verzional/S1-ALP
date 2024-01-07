@@ -11,7 +11,6 @@ public class Finner {
 
     private List<Map.Entry<LocalDate, List<FinancialData>>> allEntries;
     private UserData currentUser;
-    private int count;
     private final Scanner scan;
     private final Map<String, String> pass;
     private final Map<String, UserData> users;
@@ -29,7 +28,6 @@ public class Finner {
                                                        --------------------------------------------------------------------- """;
 
     public Finner() {
-        count = 0;
         scan = new Scanner(System.in);
         pass = new HashMap<>();
         users = new HashMap<>();
@@ -62,46 +60,11 @@ public class Finner {
         app.displayMenu();
     }
 
-    private boolean validPass(String username) {
-        System.out.print("Password (at least 8 characters, containing uppercase, lowercase, digit, and symbol): ");
-        String newPassword = scan.next();
-
-        if (newPassword.length() < 8) {
-            System.out.println("Password must be at least 8 characters long.");
-            return false;
-        }
-
-        boolean checkUpper = false;
-        boolean checkLower = false;
-        boolean checkDigit = false;
-        boolean checkSymbol = false;
-
-        for (char pwChar : newPassword.toCharArray()) {
-            if (Character.isUpperCase(pwChar)) {
-                checkUpper = true;
-            } else if (Character.isLowerCase(pwChar)) {
-                checkLower = true;
-            } else if (Character.isDigit(pwChar)) {
-                checkDigit = true;
-            } else {
-                checkSymbol = true;
-            }
-        }
-
-        if (checkUpper && checkLower && checkDigit && checkSymbol) {
-            pass.put(username, newPassword);
-            return true;
-        } else {
-            System.out.println("Password must contain at least one uppercase letter, one lowercase letter, one digit, and one symbol.");
-            return false;
-        }
-    }
-
     private void displayMenu() {
         while (true) {
             System.out.println(MENU_HEADER + """
                        Menu: 1. Login 
-                             2. Create an Account 
+                             2. Register 
                              3. Continue as a Guest
                              4. Exit Program""");
 
@@ -155,7 +118,41 @@ public class Finner {
 
         users.put(newUsername, new UserData(newUsername, pass.get(newUsername)));
         System.out.println("Account created successfully!");
-        count++;
+    }
+
+    private boolean validPass(String username) {
+        System.out.print("Password (at least 8 characters, containing uppercase, lowercase, digit, and symbol): ");
+        String newPassword = scan.next();
+
+        if (newPassword.length() < 8) {
+            System.out.println("Password must be at least 8 characters long.");
+            return false;
+        }
+
+        boolean checkUpper = false;
+        boolean checkLower = false;
+        boolean checkDigit = false;
+        boolean checkSymbol = false;
+
+        for (char pwChar : newPassword.toCharArray()) {
+            if (Character.isUpperCase(pwChar)) {
+                checkUpper = true;
+            } else if (Character.isLowerCase(pwChar)) {
+                checkLower = true;
+            } else if (Character.isDigit(pwChar)) {
+                checkDigit = true;
+            } else {
+                checkSymbol = true;
+            }
+        }
+
+        if (checkUpper && checkLower && checkDigit && checkSymbol) {
+            pass.put(username, newPassword);
+            return true;
+        } else {
+            System.out.println("Password must contain at least one uppercase letter, one lowercase letter, one digit, and one symbol.");
+            return false;
+        }
     }
 
     private void exit() {
@@ -599,23 +596,6 @@ public class Finner {
         }
     }
 
-    private String formatAmount(long amount, boolean isExpense) {
-        String prefix = (amount >= 0 && !isExpense) ? "+ " : "- ";
-
-        NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.getDefault());
-        String formattedAmount = numberFormat.format(Math.abs(amount));
-
-        return prefix + "Rp " + formattedAmount;
-    }
-
-    private String formatNetCashFlow(long netCashFlow) {
-        String prefix = (netCashFlow >= 0) ? "+ " : "- ";
-        NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.getDefault());
-        String formattedNetCashFlow = numberFormat.format(Math.abs(netCashFlow));
-        return prefix + "Rp " + formattedNetCashFlow;
-
-    }
-
     private void extraAction(String actionType, Runnable action) {
         System.out.print("\nDo you want to " + actionType + " (Y/N): ");
         String choice = scan.next();
@@ -644,6 +624,24 @@ public class Finner {
 
     private void extraEdit() {
         extraAction("edit another record?", this::editRecord);
+    }
+
+    private String formatAmount(long amount, boolean isExpense) {
+        String prefix = (amount >= 0 && !isExpense) ? "+ " : "- ";
+
+        NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.getDefault());
+        String formattedAmount = numberFormat.format(Math.abs(amount));
+
+        return prefix + "Rp " + formattedAmount;
+    }
+
+    private String formatNetCashFlow(long netCashFlow) {
+        String prefix = (netCashFlow >= 0) ? "+ " : "- ";
+
+        NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.getDefault());
+        String formattedNetCashFlow = numberFormat.format(Math.abs(netCashFlow));
+
+        return prefix + "Rp " + formattedNetCashFlow;
     }
 
     private static class UserData implements Serializable {
@@ -693,12 +691,12 @@ public class Finner {
             return amount;
         }
 
-        public void setAmount(long amount) {
-            this.amount = amount;
-        }
-
         public void setTitle(String title) {
             this.title = title;
+        }
+        
+        public void setAmount(long amount) {
+            this.amount = amount;
         }
     }
 
